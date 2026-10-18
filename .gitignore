@@ -1,0 +1,8 @@
+synced
+.trash/
+.local.env
+.vscode/
+.DS_Store
+
+# Private skills (fp-*) stay local and never ship.
+fp-*/

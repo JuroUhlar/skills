@@ -1,0 +1,39 @@
+{
+  "name": "juraj-skills",
+  "owner": { "name": "Juraj Uhlar" },
+  "description": "Agent skills for planning, building, verifying, and reviewing code.",
+  "metadata": {
+    "description": "Agent skills for planning, building, verifying, and reviewing code.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "juraj-skills",
+      "description": "Agent skills for planning, building, verifying, and reviewing code.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./code-comments",
+        "./code-review",
+        "./commit-rules",
+        "./core-principles",
+        "./diagnose-bug",
+        "./grill-me",
+        "./improve-codebase-architecture",
+        "./improve-codebase-docs",
+        "./improve-codebase-guardrails",
+        "./orchestrator",
+        "./pr-comments",
+        "./show-me",
+        "./stage-pr",
+        "./tdd",
+        "./to-spec",
+        "./to-tickets",
+        "./verify-with-proof",
+        "./visual-pr-description",
+        "./write-agent-skill",
+        "./write-well"
+      ]
+    }
+  ]
+}
