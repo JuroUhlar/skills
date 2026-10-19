@@ -15,17 +15,15 @@ Create or update the pull request for the current task with a concise descriptio
 
    [references/pr_description_template.md](references/pr_description_template.md)
 
-2. Identify or create the pull request:
+2. Find the pull request:
    - Check the current branch for a PR with `gh pr view --json url,number,title,state,baseRefName,headRefName 2>/dev/null`.
-   - If no PR exists, inspect `git status --short --branch` and the commits on the current branch.
-   - Commit task-related changes when needed, push the branch with an upstream, and create a PR for it. Follow the repository's git safety protocol.
-   - Ask the user to select a PR only when the current branch has no relevant work and there is no safe current-branch PR to create.
+   - If no PR exists, stop and offer to open one with [`stage-pr`](../stage-pr/SKILL.md). Don't commit, push, or create a PR from this skill; committing follows [`commit-rules`](../commit-rules/SKILL.md).
 
 3. If necessary, gather only the context needed to explain the change:
    - Read the ticket and any relevant task artifacts.
    - Read the complete PR diff and enough surrounding code to understand behavior and ownership.
    - Use `gh pr view` to collect PR metadata and changed files.
-   - Read [references/show-me.md](references/show-me.md) for the visual-outline conventions used in the PR body.
+   - Read [`show-me`](../show-me/SKILL.md) for the visual-outline conventions used in the PR body.
 
 4. Write the PR description using the template:
    - Keep **Why** to exactly one sentence.

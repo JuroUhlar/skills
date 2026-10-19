@@ -20,6 +20,8 @@ Test through the public **interface**: where callers observe behavior without re
 
 **Test only at pre-agreed interfaces.** Before writing any test, list the interfaces and confirm them with the user; no test at an unconfirmed one. Interfaces in a spec the user already confirmed count as confirmed. One line per interface: what it catches, what it misses. Ask: "Which public interfaces should we test?"
 
+See [Pre-factor](../core-principles/SKILL.md#pre-factor) for when to refactor before adding a test.
+
 ## The loop
 
 1. **Name the break.** Before writing the test: which production change should make it fail, and is that change a bug or a decision? Can't name one → redesign the test around an observable behavior.
@@ -27,10 +29,9 @@ Test through the public **interface**: where callers observe behavior without re
 3. **Green.** Minimum code to pass. No speculative options or features.
    - Never edit a test to fit a wrong implementation; never weaken an assertion unless the expected behavior genuinely changed.
    - Code written before its test: delete it, restart from the test. Don't keep it "as reference". Throwaway exploration is fine; discard it.
-4. **Check.** Run the targeted test, then the project's full suite before calling it done. Report every failure by name, including ones you didn't cause.
-5. **Repeat** as a vertical slice: one interface → one test → one implementation. Each test is a tracer bullet informed by the last cycle.
-
-Refactoring is not part of the loop; it belongs to review ([`code-review`](../code-review/SKILL.md)).
+4. **Refactor.** With the test green, clean up what this cycle made messy (duplication, names, shape). No new behavior; tests stay green after each change. Nothing to clean → skip.
+5. **Check.** Run the targeted test, then the project's full suite before calling it done. Report every failure by name, including ones you didn't cause.
+6. **Repeat** as a vertical slice: one interface → one test → one implementation. Each test is a tracer bullet informed by the last cycle.
 
 ## When a test isn't worth it
 

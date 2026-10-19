@@ -10,7 +10,7 @@ metadata:
 
 ## Preferences
 
-* Maximize clarity, brevity, semantic density. Get brevity by cutting content, not by dropping articles or verbs (see [Over-compression](#over-compression)).
+* Maximize clarity, brevity, semantic density.
 * No walls of text, turn long paragraphs into lists or other structured text.
 * When referencing something that can be a clickable link (PR, issue, user, document, repo), make it a clickable link.
 * Link to the section, not just the document (`doc.md#anchor`).
@@ -77,4 +77,8 @@ Colons are fine before a list or example, not as mid-sentence connectors.
 
 ### Over-compression
 
+Get brevity by cutting content, not by dropping articles or verbs.
+
 Dropped articles, verbless fragments, symbol-speak, and abbreviations make the reader decode instead of read. "Parser rejects bad date → exit 2, no write" becomes "The parser rejects a bad date, exits with code 2, and writes nothing." Write whole sentences, and spell out arrows and abbreviations.
+
+Over-compression is only allowed for agent-only audiences (skills, subagent prompts).
