@@ -3,9 +3,11 @@
 My personal agent skills for planning, building, verifying, and reviewing code.
 Grouped by workflow stage.
 
+Heavily inspired by [pstack](https://github.com/cursor/plugins/tree/main/pstack), streamlined for brevity and lower token cost, and tuned to how I work.
+
 ## Install
 
-Install the `all` plugin to get every skill, including the [`juraj-mode`](juraj-mode/SKILL.md) router that links them into one workflow. Or install individual skills; each is its own plugin. Don't install both, or every skill loads twice.
+Install the `all` plugin to get every skill, including the [`pmode`](pmode/SKILL.md) router that links them into one workflow. Or install individual skills; each is its own plugin. Don't install both, or every skill loads twice.
 
 Claude Code:
 
@@ -35,7 +37,7 @@ Or copy a skill folder into `~/.claude/skills/`.
 
 ### Entry point
 
-* [`juraj-mode`](juraj-mode/SKILL.md) triggers when a conversation opens with a task, issue, or bug. It picks a playbook (bug fix, feature, gardening) and offers the skills below in order. Questions and trivial edits skip it.
+* [`pmode`](pmode/SKILL.md) triggers when a conversation opens with a task, issue, or bug. It picks a playbook (bug fix, feature, gardening) and offers the skills below in order. Questions and trivial edits skip it.
 
 ### Building non-trivial stuff
 

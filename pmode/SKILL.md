@@ -1,6 +1,6 @@
 ---
-name: juraj-mode
-description: Load this first, before any other skill (including diagnose-bug and tdd) and before reading or searching code, whenever a conversation opens with a coding task, such as an issue, ticket, bug report, pasted error, failing or flaky test, a feature the user wants ("I want to add X"), or a request to build, add, change, fix, or refactor something. Skip for questions and trivial edits (typo, config value, dependency bump). Also when the user invokes juraj-mode.
+name: pmode
+description: Load this first, before any other skill (including diagnose-bug and tdd) and before reading or searching code, whenever a conversation opens with a coding task, such as an issue, ticket, bug report, pasted error, failing or flaky test, a feature the user wants ("I want to add X"), or a request to build, add, change, fix, or refactor something. Skip for questions and trivial edits (typo, config value, dependency bump). Also when the user invokes pmode.
 metadata:
   inspiration:
     - https://github.com/cursor/plugins/tree/main/pstack/skills/poteto-mode

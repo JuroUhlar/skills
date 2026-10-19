@@ -59,7 +59,7 @@ function renderMarketplace(): string {
   // The bundle ships the whole repo so relative links between skills resolve.
   const bundle = {
     name: "all",
-    description: "Every skill in this marketplace, including the juraj-mode router. Install this or individual skills, not both.",
+    description: "Every skill in this marketplace, including the pmode router. Install this or individual skills, not both.",
     source: "./",
     strict: false,
     skills: skills.map((skill) => `./${skill}`),
