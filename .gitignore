@@ -6,3 +6,4 @@ synced
 
 # Private skills (fp-*) stay local and never ship.
 fp-*/
+dist/
