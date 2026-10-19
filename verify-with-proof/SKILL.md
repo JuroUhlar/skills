@@ -56,3 +56,7 @@ Lead with the status and the evidence: command → output, before vs after. Make
 - Cleanup: stop only processes you started (never kill by name); remove scratch state, **keep the evidence**.
 - Sensitive artifacts (prompts, bodies, heap dumps, private screenshots): inline minimal, don't write to disk without consent.
 - Shared instance that can't be isolated: don't double-drive it.
+
+## Next
+
+If this verified your own change, offer to review the diff with [`code-review`](../code-review/SKILL.md) before handing it off.

@@ -51,3 +51,7 @@ BAD (horizontal):
 
 GOOD (vertical):
 `Ticket 1: signed-in user sees { id, available } for one account. Ticket 2: hidden accounts are omitted.`
+
+## Next
+
+Offer to build the tickets with [`tdd`](../tdd/SKILL.md), one at a time, starting with a ticket that has no unfinished blockers. For several tickets, also offer [`orchestrator`](../orchestrator/SKILL.md) to hand each ticket to a fresh subagent.

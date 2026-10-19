@@ -6,7 +6,8 @@
   },
   "scripts": {
     "build": "node scripts/skills.ts build",
-    "check": "tsc && node scripts/skills.ts check"
+    "check": "tsc && node scripts/skills.ts check",
+    "eval": "node scripts/skills.ts eval"
   },
   "dependencies": {
     "yaml": "^2.9.1"

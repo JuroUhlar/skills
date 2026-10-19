@@ -18,7 +18,7 @@ Read the project's domain glossary (`GLOSSARY.md` if present) so test names matc
 
 Test through the public **interface**: where callers observe behavior without reaching inside. Never against internals.
 
-**Test only at pre-agreed interfaces.** Before writing any test, list the interfaces and confirm them with the user; no test at an unconfirmed one. One line per interface: what it catches, what it misses. Ask: "Which public interfaces should we test?"
+**Test only at pre-agreed interfaces.** Before writing any test, list the interfaces and confirm them with the user; no test at an unconfirmed one. Interfaces in a spec the user already confirmed count as confirmed. One line per interface: what it catches, what it misses. Ask: "Which public interfaces should we test?"
 
 ## The loop
 
@@ -68,3 +68,7 @@ Coverage % shows what ran, not what's protected. Judge tests by what they'd catc
 ## Report
 
 Evidence, not outcome: the failing-before test and its failure, the passing-after run, full-suite status. No failing-before? Say why and name the closest check used.
+
+## Next
+
+Offer to prove the behavior on the running build with [`verify-with-proof`](../verify-with-proof/SKILL.md).

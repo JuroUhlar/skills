@@ -9,6 +9,35 @@
   },
   "plugins": [
     {
+      "name": "all",
+      "description": "Every skill in this marketplace, including the juraj-mode router. Install this or individual skills, not both.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./code-comments",
+        "./code-review",
+        "./commit-rules",
+        "./core-principles",
+        "./diagnose-bug",
+        "./grill-me",
+        "./improve-codebase-architecture",
+        "./improve-codebase-docs",
+        "./improve-codebase-guardrails",
+        "./juraj-mode",
+        "./orchestrator",
+        "./pr-comments",
+        "./show-me",
+        "./stage-pr",
+        "./tdd",
+        "./to-spec",
+        "./to-tickets",
+        "./verify-with-proof",
+        "./visual-pr-description",
+        "./write-agent-skill",
+        "./write-well"
+      ]
+    },
+    {
       "name": "code-comments",
       "description": "Use when writing, editing, or reviewing comments in code, including doc comments and lint suppressions.",
       "source": "./code-comments",
@@ -84,6 +113,15 @@
       "name": "improve-codebase-guardrails",
       "description": "Use when asked to add or improve linters, type checks, import rules, CI checks, or tests that guard a codebase, or after a mistake or review correction that shouldn't happen again.",
       "source": "./improve-codebase-guardrails",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "juraj-mode",
+      "description": "Load this first, before any other skill (including diagnose-bug and tdd) and before reading or searching code, whenever a conversation opens with a coding task, such as an issue, ticket, bug report, pasted error, failing or flaky test, a feature the user wants (\"I want to add X\"), or a request to build, add, change, fix, or refactor something. Skip for questions and trivial edits (typo, config value, dependency bump). Also when the user invokes juraj-mode.",
+      "source": "./juraj-mode",
       "strict": false,
       "skills": [
         "./"

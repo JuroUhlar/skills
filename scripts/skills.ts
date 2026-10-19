@@ -3,8 +3,9 @@
 //   npm run build   # regenerate .claude-plugin/marketplace.json
 //   npm run check   # type-check this script, then fail on any repo rule violation
 
-import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
 
@@ -44,18 +45,35 @@ function frontmatter(skill: string): Frontmatter {
   const text = readFileSync(join(ROOT, skill, "SKILL.md"), "utf8");
   const match = text.match(/^---\n([\s\S]*?)\n---\n/);
   if (!match) throw new Error(`${skill}/SKILL.md has no frontmatter`);
-  return parseYaml(match[1]) as Frontmatter;
+  try {
+    return parseYaml(match[1]) as Frontmatter;
+  } catch (error) {
+    const reason = (error as Error).message.split("\n")[0];
+    throw new Error(`${skill}/SKILL.md: invalid frontmatter (${reason})`);
+  }
 }
 
 function renderMarketplace(): string {
   const marketplace = JSON.parse(readFileSync(MARKETPLACE, "utf8"));
-  marketplace.plugins = publicSkills().map((skill) => ({
-    name: skill,
-    description: (frontmatter(skill).description ?? "").split(/\s+/).join(" ").trim(),
-    source: `./${skill}`,
+  const skills = publicSkills();
+  // The bundle ships the whole repo so relative links between skills resolve.
+  const bundle = {
+    name: "all",
+    description: "Every skill in this marketplace, including the juraj-mode router. Install this or individual skills, not both.",
+    source: "./",
     strict: false,
-    skills: ["./"],
-  }));
+    skills: skills.map((skill) => `./${skill}`),
+  };
+  marketplace.plugins = [
+    bundle,
+    ...skills.map((skill) => ({
+      name: skill,
+      description: (frontmatter(skill).description ?? "").split(/\s+/).join(" ").trim(),
+      source: `./${skill}`,
+      strict: false,
+      skills: ["./"],
+    })),
+  ];
   return JSON.stringify(marketplace, null, 2) + "\n";
 }
 
@@ -137,15 +155,46 @@ function check(): string[] {
   return errors;
 }
 
-const command = process.argv[2];
-if (command === "build") {
-  writeFileSync(MARKETPLACE, renderMarketplace());
-} else if (command === "check") {
-  const errors = check();
-  for (const error of errors) console.log(error);
-  console.log(errors.length ? `${errors.length} problem(s)` : "ok");
-  process.exitCode = errors.length ? 1 : 0;
-} else {
-  console.log("usage: node scripts/skills.ts <build|check>");
-  process.exitCode = 2;
+/**
+ * Run the eval suite against the working tree. `claude plugin eval` needs a plugin root,
+ * so assemble one in the OS temp dir from the public skills and evals/.
+ */
+function runEvals(extraArgs: string[]): number {
+  const plugin = join(tmpdir(), "juraj-skills-eval");
+  rmSync(plugin, { recursive: true, force: true });
+  mkdirSync(join(plugin, ".claude-plugin"), { recursive: true });
+  writeFileSync(join(plugin, ".claude-plugin", "plugin.json"), JSON.stringify({ name: "all" }));
+  for (const skill of publicSkills()) cpSync(join(ROOT, skill), join(plugin, "skills", skill), { recursive: true });
+  cpSync(join(ROOT, "evals"), join(plugin, "evals"), {
+    recursive: true,
+    filter: (src) => !src.startsWith(join(ROOT, "evals", "results")),
+  });
+  const outputDir = join(ROOT, "evals", "results", new Date().toISOString().replaceAll(":", "-"));
+  // Sonnet keeps runs cheap. Skill choice differs by model, so pass `--model opus` to confirm on Opus.
+  const args = ["plugin", "eval", plugin, "--model", "sonnet", "--ablation", "none", "--runs", "1", "--max-cost-usd", "3",
+    "--no-publish", "--trust-plugin", "--output-dir", outputDir, ...extraArgs];
+  return spawnSync("claude", args, { stdio: "inherit" }).status ?? 1;
+}
+
+function main(command: string | undefined): number {
+  if (command === "eval") return runEvals(process.argv.slice(3));
+  if (command === "build") {
+    writeFileSync(MARKETPLACE, renderMarketplace());
+    return 0;
+  }
+  if (command === "check") {
+    const errors = check();
+    for (const error of errors) console.log(error);
+    console.log(errors.length ? `${errors.length} problem(s)` : "ok");
+    return errors.length ? 1 : 0;
+  }
+  console.log("usage: node scripts/skills.ts <build|check|eval>");
+  return 2;
+}
+
+try {
+  process.exitCode = main(process.argv[2]);
+} catch (error) {
+  console.log((error as Error).message);
+  process.exitCode = 1;
 }

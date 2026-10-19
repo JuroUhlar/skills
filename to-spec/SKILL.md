@@ -45,3 +45,7 @@ BAD (implementation plan):
 
 GOOD (interface + behavior):
 `GET /accounts` returns `{ id, available }` for the signed-in user. Hidden accounts are omitted.
+
+## Next
+
+Offer to split the spec with [`to-tickets`](../to-tickets/SKILL.md) if it doesn't fit one session, or to build it with [`tdd`](../tdd/SKILL.md) at the spec's interfaces.

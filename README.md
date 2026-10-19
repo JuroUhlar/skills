@@ -5,16 +5,16 @@ Grouped by workflow stage.
 
 ## Install
 
-Each skill is its own plugin, so you can install only the ones you want.
+Install the `all` plugin to get every skill, including the [`juraj-mode`](juraj-mode/SKILL.md) router that links them into one workflow. Or install individual skills; each is its own plugin. Don't install both, or every skill loads twice.
 
 Claude Code:
 
 ```
 /plugin marketplace add JuroUhlar/skills
-/plugin install tdd@juraj-skills
+/plugin install all@juraj-skills
 ```
 
-Skills are then available as `/<skill>:<skill>`, for example `/tdd:tdd`.
+Skills are then available as `/<plugin>:<skill>`, for example `/all:tdd`, or `/tdd:tdd` for the individual plugin.
 
 Plugins are unversioned, so every push to `main` is an update. To receive updates automatically, turn on auto-update under `/plugin` → Marketplaces → `juraj-skills`. Otherwise run `/plugin marketplace update juraj-skills`.
 
@@ -32,6 +32,10 @@ Or copy a skill folder into `~/.claude/skills/`.
 
 > Note: when adding or removing a skill, update this list and run `npm run build` to regenerate `.claude-plugin/marketplace.json`. `npm run check` (also run in CI) catches the rest.
 > Skills prefixed `fp-` are private and gitignored.
+
+### Entry point
+
+* [`juraj-mode`](juraj-mode/SKILL.md) triggers when a conversation opens with a task, issue, or bug. It picks a playbook (bug fix, feature, gardening) and offers the skills below in order. Questions and trivial edits skip it.
 
 ### Building non-trivial stuff
 
@@ -75,6 +79,25 @@ Or copy a skill folder into `~/.claude/skills/`.
 ### Meta
 
 * [`write-agent-skill`](write-agent-skill/SKILL.md)
+
+## Evals
+
+[`evals/`](evals) checks which skill loads for typical opening prompts. Each run is a real model call on your account (about $0.12 per case). To run it against the working tree:
+
+```
+npm run eval
+npm run eval -- --case bug-issue   # one case
+```
+
+It bundles the public skills into a temporary plugin and runs `claude plugin eval` with cheap defaults:
+
+- `--ablation none` skips the no-plugin baseline, which halves the runs.
+- `--runs 1` instead of the default 3. Pass `--runs 3` to measure a trigger rate.
+- `--max-cost-usd 3` stops the run at that cost.
+- `--case 'control-*'` or `--case bug-issue` runs only the cases a change affects.
+- `--model sonnet` costs about a third less than Opus. Skill choice differs by model, so confirm description changes with `-- --model opus`.
+- Cases stop after `max_turns: 3`, and graders are free `tool_used` checks, not paid LLM judges.
+- Run it by hand after changing a description, not in CI on every push.
 
 ## Inspiration
 

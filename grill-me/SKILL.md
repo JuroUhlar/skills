@@ -29,3 +29,7 @@ Each round reshapes the tree. Settled decisions push the frontier out. A questio
 Look up facts yourself (code, docs, tools). Do not ask the user for anything you can find. Decisions stay with the user. Wait for those.
 
 The session is done when the frontier is empty: every branch visited, nothing silently assumed. Do not act on the plan until the user confirms you share an understanding.
+
+## Next
+
+When the outcome is something to build, offer to write it down with [`to-spec`](../to-spec/SKILL.md).

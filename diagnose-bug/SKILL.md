@@ -99,3 +99,7 @@ Reading code to build a theory before this exists is the failure this skill prev
 - `[DEBUG-` prefix greps clean. Throwaway harnesses deleted.
 - Commit or PR states the confirmed hypothesis.
 - Say what would have prevented the bug (untestable code path, tangled callers, hidden coupling). See [Shape of the code](../core-principles/SKILL.md#shape-of-the-code).
+
+## Next
+
+Offer to prove the user's symptom is gone on the running build with [`verify-with-proof`](../verify-with-proof/SKILL.md).
