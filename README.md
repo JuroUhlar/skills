@@ -16,6 +16,8 @@ Claude Code:
 
 Skills are then available as `/<skill>:<skill>`, for example `/tdd:tdd`.
 
+Plugins are unversioned, so every push to `main` is an update. To receive updates automatically, turn on auto-update under `/plugin` → Marketplaces → `juraj-skills`. Otherwise run `/plugin marketplace update juraj-skills`.
+
 Claude chat (claude.ai): Customize → Plugins → Add → Add marketplace, enter `JuroUhlar/skills`, then install the plugins you want.
 
 Any agent harness, with [`skills`](https://github.com/vercel-labs/skills):

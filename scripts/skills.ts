@@ -92,6 +92,22 @@ function check(): string[] {
     }
   }
 
+  // Claude Code tracks commits when no version is set; a pinned version hides every later push.
+  // https://code.claude.com/docs/en/plugins/host-marketplace#release-a-new-version
+  const marketplace = JSON.parse(readFileSync(MARKETPLACE, "utf8"));
+  if (marketplace.version || marketplace.metadata?.version) {
+    errors.push(`${relative(ROOT, MARKETPLACE)}: remove the marketplace version, it doesn't control plugin updates`);
+  }
+  for (const plugin of marketplace.plugins ?? []) {
+    if (plugin.version) errors.push(`${relative(ROOT, MARKETPLACE)}: plugin ${plugin.name} sets version, which blocks updates`);
+  }
+  for (const skill of skills) {
+    const manifest = join(ROOT, skill, ".claude-plugin", "plugin.json");
+    if (existsSync(manifest) && JSON.parse(readFileSync(manifest, "utf8")).version) {
+      errors.push(`${relative(ROOT, manifest)}: sets version, which blocks updates`);
+    }
+  }
+
   if (readFileSync(MARKETPLACE, "utf8") !== renderMarketplace()) {
     errors.push(`${relative(ROOT, MARKETPLACE)} is stale: run \`npm run build\``);
   }

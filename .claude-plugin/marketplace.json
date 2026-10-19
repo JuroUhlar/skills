@@ -5,8 +5,7 @@
   },
   "description": "Agent skills for planning, building, verifying, and reviewing code.",
   "metadata": {
-    "description": "Agent skills for planning, building, verifying, and reviewing code.",
-    "version": "1.1.0"
+    "description": "Agent skills for planning, building, verifying, and reviewing code."
   },
   "plugins": [
     {
