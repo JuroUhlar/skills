@@ -5,14 +5,18 @@ Grouped by workflow stage.
 
 ## Install
 
-Claude Code, as a plugin:
+Each skill is its own plugin, so you can install only the ones you want.
+
+Claude Code:
 
 ```
 /plugin marketplace add JuroUhlar/skills
-/plugin install juraj-skills@juraj-skills
+/plugin install tdd@juraj-skills
 ```
 
-Skills are then available as `/juraj-skills:<skill>`, for example `/juraj-skills:tdd`.
+Skills are then available as `/<skill>:<skill>`, for example `/tdd:tdd`.
+
+Claude chat (claude.ai): Customize → Plugins → Add → Add marketplace, enter `JuroUhlar/skills`, then install the plugins you want.
 
 Any agent harness, with [`skills`](https://github.com/vercel-labs/skills):
 
