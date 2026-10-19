@@ -12,181 +12,181 @@
     {
       "name": "code-comments",
       "description": "Use when writing, editing, or reviewing comments in code, including doc comments and lint suppressions.",
-      "source": "./",
+      "source": "./code-comments",
       "strict": false,
       "skills": [
-        "./code-comments"
+        "./"
       ]
     },
     {
       "name": "code-review",
       "description": "Use when asked to review a PR, branch diff, or local changes, or before merging or handing off your own work.",
-      "source": "./",
+      "source": "./code-review",
       "strict": false,
       "skills": [
-        "./code-review"
+        "./"
       ]
     },
     {
       "name": "commit-rules",
       "description": "Use when committing, writing commit messages, splitting work into commits, pushing, or resolving merge or rebase conflicts.",
-      "source": "./",
+      "source": "./commit-rules",
       "strict": false,
       "skills": [
-        "./commit-rules"
+        "./"
       ]
     },
     {
       "name": "core-principles",
       "description": "Use when planning, designing, refactoring, or reviewing code, when judging a diff's size or structure, when you are torn between two options, when the user says says to apply core engineering principles (or rules, values, etc.) or names of them.",
-      "source": "./",
+      "source": "./core-principles",
       "strict": false,
       "skills": [
-        "./core-principles"
+        "./"
       ]
     },
     {
       "name": "diagnose-bug",
       "description": "Use when the user says \"diagnose\" or \"debug this\", or reports something broken, throwing, failing, flaky, or slow whose cause isn't obvious.",
-      "source": "./",
+      "source": "./diagnose-bug",
       "strict": false,
       "skills": [
-        "./diagnose-bug"
+        "./"
       ]
     },
     {
       "name": "grill-me",
       "description": "Relentless interview to sharpen a plan, decision, or design until every branch is resolved. Use when the user invokes grill-me or asks to be grilled.",
-      "source": "./",
+      "source": "./grill-me",
       "strict": false,
       "skills": [
-        "./grill-me"
+        "./"
       ]
     },
     {
       "name": "improve-codebase-architecture",
       "description": "Use when asked to improve, review, or find refactoring opportunities in a codebase's architecture or structure, not a single diff.",
-      "source": "./",
+      "source": "./improve-codebase-architecture",
       "strict": false,
       "skills": [
-        "./improve-codebase-architecture"
+        "./"
       ]
     },
     {
       "name": "improve-codebase-docs",
       "description": "Use when asked to improve, audit, or reorganize a repo's docs, agent instruction files, or glossary, or when deciding whether a design or product decision is worth recording.",
-      "source": "./",
+      "source": "./improve-codebase-docs",
       "strict": false,
       "skills": [
-        "./improve-codebase-docs"
+        "./"
       ]
     },
     {
       "name": "improve-codebase-guardrails",
       "description": "Use when asked to add or improve linters, type checks, import rules, CI checks, or tests that guard a codebase, or after a mistake or review correction that shouldn't happen again.",
-      "source": "./",
+      "source": "./improve-codebase-guardrails",
       "strict": false,
       "skills": [
-        "./improve-codebase-guardrails"
+        "./"
       ]
     },
     {
       "name": "orchestrator",
       "description": "Use when running long or multi-step work, delegating to subagents or parallel agents, working autonomously while the user is away, or resuming after context compaction.",
-      "source": "./",
+      "source": "./orchestrator",
       "strict": false,
       "skills": [
-        "./orchestrator"
+        "./"
       ]
     },
     {
       "name": "pr-comments",
       "description": "Use when replying to or resolving PR review comments, addressing review feedback, or staging/drafting PR review comments without posting them.",
-      "source": "./",
+      "source": "./pr-comments",
       "strict": false,
       "skills": [
-        "./pr-comments"
+        "./"
       ]
     },
     {
       "name": "show-me",
       "description": "Help the user understand the current topic visually with concise diagrams, code-shape sketches, and focused HTML artifacts.",
-      "source": "./",
+      "source": "./show-me",
       "strict": false,
       "skills": [
-        "./show-me"
+        "./"
       ]
     },
     {
       "name": "stage-pr",
       "description": "Open a draft pull request for current work or branch. Iterate until CI is green and Copilot review approves. Use when the user asks to make a stage a PR/make PR reviewable, ready for review.",
-      "source": "./",
+      "source": "./stage-pr",
       "strict": false,
       "skills": [
-        "./stage-pr"
+        "./"
       ]
     },
     {
       "name": "tdd",
       "description": "Use when building a feature or fixing a bug test-first, when asked for red-green-refactor, a failing test, or a regression test, when writing or changing tests, and when asked to audit, review, or evaluate test coverage or test quality.",
-      "source": "./",
+      "source": "./tdd",
       "strict": false,
       "skills": [
-        "./tdd"
+        "./"
       ]
     },
     {
       "name": "to-spec",
       "description": "Use when the user invokes to-spec or asks to write a spec from the current conversation.",
-      "source": "./",
+      "source": "./to-spec",
       "strict": false,
       "skills": [
-        "./to-spec"
+        "./"
       ]
     },
     {
       "name": "to-tickets",
       "description": "Use when the user invokes to-tickets or asks to break a spec or plan into tickets.",
-      "source": "./",
+      "source": "./to-tickets",
       "strict": false,
       "skills": [
-        "./to-tickets"
+        "./"
       ]
     },
     {
       "name": "verify-with-proof",
       "description": "Use after implementing, before claiming work is done, fixed, or passing, and when asked to \"verify\", \"prove it works\", or \"did this fix it\".",
-      "source": "./",
+      "source": "./verify-with-proof",
       "strict": false,
       "skills": [
-        "./verify-with-proof"
+        "./"
       ]
     },
     {
       "name": "visual-pr-description",
       "description": "Create or update a GitHub pull request description with a compact visual change outline. Use any time you are writing or updating a PR description your/mine PR.",
-      "source": "./",
+      "source": "./visual-pr-description",
       "strict": false,
       "skills": [
-        "./visual-pr-description"
+        "./"
       ]
     },
     {
       "name": "write-agent-skill",
       "description": "Use when writing, editing, or reviewing agent skills.",
-      "source": "./",
+      "source": "./write-agent-skill",
       "strict": false,
       "skills": [
-        "./write-agent-skill"
+        "./"
       ]
     },
     {
       "name": "write-well",
       "description": "Use whenever writing or editing prose, docs, comments, commit messages, PR descriptions, or chat responses.",
-      "source": "./",
+      "source": "./write-well",
       "strict": false,
       "skills": [
-        "./write-well"
+        "./"
       ]
     }
   ]
