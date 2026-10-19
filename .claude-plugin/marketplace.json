@@ -18,6 +18,7 @@
         "./code-review",
         "./commit-rules",
         "./core-principles",
+        "./create-verification-skill",
         "./diagnose-bug",
         "./grill-me",
         "./improve-codebase-architecture",
@@ -68,6 +69,15 @@
       "name": "core-principles",
       "description": "Use when planning, designing, refactoring, or reviewing code, when judging a diff's size or structure, when you are torn between two options, or when the user says to apply core engineering principles (or rules, values) or names one.",
       "source": "./core-principles",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "create-verification-skill",
+      "description": "Use when the user invokes create-verification-skill, or asks to create, audit, or update a project verification skill.",
+      "source": "./create-verification-skill",
       "strict": false,
       "skills": [
         "./"

@@ -66,6 +66,7 @@ Or copy a skill folder into `~/.claude/skills/`.
 * [`improve-codebase-architecture`](improve-codebase-architecture/SKILL.md)
 * [`improve-codebase-docs`](improve-codebase-docs/SKILL.md)
 * [`improve-codebase-guardrails`](improve-codebase-guardrails/SKILL.md)
+* [`create-verification-skill`](create-verification-skill/SKILL.md)
 
 ### Agent rules and nudges
 

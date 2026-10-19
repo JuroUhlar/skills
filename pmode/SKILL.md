@@ -6,7 +6,7 @@ metadata:
     - https://github.com/cursor/plugins/tree/main/pstack/skills/poteto-mode
 ---
 
-# Juraj mode
+# Poteto mode
 
 Match the task to one playbook, then run the playbook's skills in order.
 
@@ -51,6 +51,7 @@ Improve the codebase itself rather than one behavior. Use the matching skill:
 - [`improve-codebase-architecture`](../improve-codebase-architecture/SKILL.md)
 - [`improve-codebase-docs`](../improve-codebase-docs/SKILL.md)
 - [`improve-codebase-guardrails`](../improve-codebase-guardrails/SKILL.md)
+- [`create-verification-skill`](../create-verification-skill/SKILL.md)
 
 ### No playbook fits
 

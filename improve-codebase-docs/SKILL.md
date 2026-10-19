@@ -16,7 +16,7 @@ metadata:
 * `AGENTS.md` - very brief signpost of where to find other resources
 * `GLOSSARY.md` - shared vocabulary for the project, should streamline human and agent communication
 * `STANDARDS.md` - repo-specific quality rules and conventions for review agent.
-* `VERIFICATION.md` or a project verification skill - how to drive the project to actually verify behavior end-to-end with proof instead of inferring from code. Prefer a skill when the steps are long or need scripts.
+* Project verification skill (`verify-<app>`) - how to drive the project to verify behavior end-to-end with proof instead of inferring from code. Create or audit it with [`create-verification-skill`](../create-verification-skill/SKILL.md).
 
 ## Document only what can't be looked up
 
