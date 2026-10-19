@@ -20,6 +20,10 @@ The user is whoever consumes the work: end user, the colleague importing your AP
 - Write the caller's code first (README snippet, 2–3 real call sites), then fit the types to it.
 - Where the spec is silent, what a reasonable user expects is the requirement.
 
+### Call out wrong assumptions
+
+If you think the request or goal is based on incorrect assumptions (even if implied), call it out before building.
+
 ### Default to simplicity
 
 - Prefer the simplest solution (smallest PR, simplest system, fewest moving parts) that meets requirements.

@@ -66,7 +66,7 @@ PRs: don't run the suite or lint unless asked; assume CI passes. Targeted repros
 
 You hold context the sub-agents lack (constraints, what was tried, scaffolding vs permanent, what the next PR fixes). Filter and decide; don't concatenate.
 
-- Try to **prove** every P0/P1 before keeping it (see below). Re-trace the rest.
+- Try to **prove** every P0/P1/P2 before keeping it (see below). Re-trace the rest.
 - Drop: nit inflation, unreachable hypotheticals, preference-only, patterns consistent with the rest of the codebase, comments on code the author didn't touch.
 - Don't dismiss security or correctness findings because they're uncomfortable. A concrete path, or independent agreement, means keep.
 - Same issue on several axes → one finding, highest severity, Production framing if it's a real defect, tag every axis (`[production, spec]`).
