@@ -30,8 +30,7 @@ No check possible (needs prod access, human clicks)? Say so, list what you tried
 - **Observe side effects** (files, rows, messages sent), not just what's visible.
 - **Dry-run / test modes:** observe what they actually skip. Some still hit the network.
 - **Verification fails or looks odd → suspect your observation method first.**
-- Reuse the repo's project verification skill, if present, before building a harness; 
-- throwaway probes add no dependencies
+- Reuse the repo's project verification skill, if present. Otherwise build a throwaway probe; don't add dependencies to the repo for it.
 - A repo with several entry points to a feature: one convenient path is incomplete proof.
 - Script the check so a reviewer can re-run it; keep script + output as the artifact and link it from the PR. Beats an eyeballed one-off.
 
@@ -61,5 +60,3 @@ Lead with the status and the evidence: command → output, before vs after. Make
 ## Next
 
 If this verified your own change, offer to review the diff with [`code-review`](../code-review/SKILL.md) before handing it off.
-
-No project verification skill, and proving this took real setup (launch, auth, seed data)? Offer [`create-verification-skill`](../create-verification-skill/SKILL.md) so the next proof is cheap.
