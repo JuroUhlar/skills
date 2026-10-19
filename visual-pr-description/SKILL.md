@@ -1,6 +1,6 @@
 ---
 name: visual-pr-description
-description: Create or update a GitHub pull request description with a compact visual change outline. Use any time you are writing or updating a PR description your/mine PR.
+description: Create or update a GitHub pull request description with a compact visual change outline. Use when writing or updating the description of the user's own PR.
 metadata:
   source: https://github.com/humanlayer/skills/tree/main/plugins/visual-pr/skills/visual-pr
 ---
@@ -28,8 +28,9 @@ Create or update the pull request for the current task with a concise descriptio
    - Read [references/show-me.md](references/show-me.md) for the visual-outline conventions used in the PR body.
 
 4. Write the PR description using the template:
-   - Keep **Why the change** to exactly one sentence.
-   - Keep **Special things to note** to 1-3 bullets. Prioritize reviewer warnings, migrations, compatibility constraints, deliberate omissions, or surprising decisions. Write `- None.` when there are no special considerations.
+   - Keep **Why** to exactly one sentence.
+   - Keep **Things to note** to 1-3 bullets. Prioritize reviewer warnings, migrations, compatibility constraints, deliberate omissions, or surprising decisions. Write `- None.` when there are no special considerations.
+   - Fill **Verification** with the evidence from [`verify-with-proof`](../verify-with-proof/SKILL.md#report). Omit it when nothing could be run.
    - Make **Change outline** a compact, `/show-me`-inspired structural view rather than prose or a file-by-file changelog.
    - Include only the views that help explain this PR:
      - SQL table and endpoint contract changes, plus pseudocode for business logic.
@@ -39,7 +40,7 @@ Create or update the pull request for the current task with a concise descriptio
      - Call-tree, call-stack, control-flow, or data-flow changes.
    - Prefer `diff` blocks when showing changes to an existing shape. Show the complete target shape when most of it is new or diff notation would obscure ownership or order.
    - Keep each view focused on what a reviewer needs. Omit categories that did not change.
-   - optionaL: if you are aware of a ticket id/url, a humanlayer task url, or related plan/document urls, or other relevant links, include them in the header, otherwise omit the header
+   - Optional: if you know a ticket id/url, related plan/document urls, or other relevant links, put them in **Context**; otherwise omit **Context**.
 
 5. Save and publish the description:
    - Update the PR with `gh pr edit {number} --body` and a quoted heredoc.

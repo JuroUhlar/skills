@@ -13,11 +13,11 @@ Interview the user until you share an understanding. Map the work as a **design 
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask now without guessing. Ask the whole frontier in one round. Number each question and give your recommended answer. Then wait.
 
 ```
-**Q1 — <title>:** <body, including choices if useful>
+**Q1. <title>:** <body, including choices if useful>
 
 Recommended: <your answer>
 
-**Q2 — <title>:** <body>
+**Q2. <title>:** <body>
 
 Recommended: <your answer>
 ```

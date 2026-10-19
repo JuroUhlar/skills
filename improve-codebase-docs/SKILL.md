@@ -16,7 +16,7 @@ metadata:
 * `AGENTS.md` - very brief signpost of where to find other resources
 * `GLOSSARY.md` - shared vocabulary for the project, should streamline human and agent communication
 * `STANDARDS.md` - repo-specific quality rules and conventions for review agent.
-* `VERIFICATION.md` - how to drive the project to actually verify behavior end-to-end with proof instead inferring from code.
+* `VERIFICATION.md` or a project verification skill - how to drive the project to actually verify behavior end-to-end with proof instead of inferring from code. Prefer a skill when the steps are long or need scripts.
 
 ## Document only what can't be looked up
 
@@ -33,7 +33,7 @@ Rejected alternatives are the most valuable part; they stop the next person (or 
 
 ## Keep `AGENTS.md` small
 
-It loads into every agent's context. Keep only pointers to other files and rules that apply to every task. Move review-time rules to `STANDARDS.md` and mechanical rules to checks (see [Encode lessons in structure](../improve-codebase-guardrails/SKILL.md#encode-lessons-in-structure)). Delete lines that don't change behavior.
+It loads into every agent's context. Keep only pointers to other files and rules that apply to every task. Move review-time rules to `STANDARDS.md` and mechanical rules to checks (see [Hierarchy of constraints](../improve-codebase-guardrails/SKILL.md#hierarchy-of-constraints)). Delete lines that don't change behavior.
 
 ## Audit
 

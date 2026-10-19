@@ -18,7 +18,7 @@ The loop is the skill. With a command that goes red on _this_ bug, bisection and
 
 ### Loop options
 
-Roughly in order of preference:
+If the repo has a `VERIFICATION.md` or a project verification skill, start from how it drives the project. Then, roughly in order of preference:
 
 - Failing test at whatever level reaches the bug.
 - `curl`/HTTP script against a running dev server.

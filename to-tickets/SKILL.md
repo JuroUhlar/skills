@@ -8,7 +8,7 @@ metadata:
 
 # To tickets
 
-Break a spec, plan, or this conversation into **tickets**. Unless user specifically asks to to build the project in horizontal layers, build in vertical slices - Each ticket is a tracer bullet: a narrow, complete path through every layer, demoable on its own, sized for one fresh context window.
+Break a spec, plan, or this conversation into **tickets**. Unless user specifically asks to build the project in horizontal layers, build in vertical slices - Each ticket is a tracer bullet: a narrow, complete path through every layer, demoable on its own, sized for one fresh context window.
 
 Do not invent product decisions. If alignment is still open, stop and use [`grill-me`](../grill-me/SKILL.md). If the whole change fits one session, do not split.
 

@@ -38,7 +38,7 @@
     },
     {
       "name": "core-principles",
-      "description": "Use when planning, designing, refactoring, or reviewing code, when judging a diff's size or structure, when you are torn between two options, when the user says says to apply core engineering principles (or rules, values, etc.) or names of them.",
+      "description": "Use when planning, designing, refactoring, or reviewing code, when judging a diff's size or structure, when you are torn between two options, or when the user says to apply core engineering principles (or rules, values) or names one.",
       "source": "./core-principles",
       "strict": false,
       "skills": [
@@ -110,7 +110,7 @@
     },
     {
       "name": "show-me",
-      "description": "Help the user understand the current topic visually with concise diagrams, code-shape sketches, and focused HTML artifacts.",
+      "description": "Use when the user invokes show-me or asks to see the current topic as a diagram, code-shape sketch, or visual explanation.",
       "source": "./show-me",
       "strict": false,
       "skills": [
@@ -119,7 +119,7 @@
     },
     {
       "name": "stage-pr",
-      "description": "Open a draft pull request for current work or branch. Iterate until CI is green and Copilot review approves. Use when the user asks to make a stage a PR/make PR reviewable, ready for review.",
+      "description": "Open a draft pull request for current work or branch. Iterate until CI is green and Copilot review approves. Use when the user asks to stage a PR or make a PR reviewable or ready for review.",
       "source": "./stage-pr",
       "strict": false,
       "skills": [
@@ -164,7 +164,7 @@
     },
     {
       "name": "visual-pr-description",
-      "description": "Create or update a GitHub pull request description with a compact visual change outline. Use any time you are writing or updating a PR description your/mine PR.",
+      "description": "Create or update a GitHub pull request description with a compact visual change outline. Use when writing or updating the description of the user's own PR.",
       "source": "./visual-pr-description",
       "strict": false,
       "skills": [
@@ -182,7 +182,7 @@
     },
     {
       "name": "write-well",
-      "description": "Use whenever writing or editing prose, docs, comments, commit messages, PR descriptions, or chat responses.",
+      "description": "Always apply. Use whenever writing or editing prose, docs, comments, commit messages, PR descriptions, or composing chat responses.",
       "source": "./write-well",
       "strict": false,
       "skills": [

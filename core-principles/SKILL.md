@@ -1,6 +1,6 @@
 ---
 name: core-principles
-description: Use when planning, designing, refactoring, or reviewing code, when judging a diff's size or structure, when you are torn between two options, when the user says says to apply core engineering principles (or rules, values, etc.) or names of them.
+description: Use when planning, designing, refactoring, or reviewing code, when judging a diff's size or structure, when you are torn between two options, or when the user says to apply core engineering principles (or rules, values) or names one.
 metadata:
   inspiration:
     - https://github.com/cursor/plugins/blob/main/pstack/docs/guide/08-principles.md

@@ -1,6 +1,6 @@
 ---
 name: write-well
-description: Always appy. Use whenever writing or editing prose, docs, comments, commit messages, PR descriptions, or composing chat responses.
+description: Always apply. Use whenever writing or editing prose, docs, comments, commit messages, PR descriptions, or composing chat responses.
 metadata:
   inspiration:
     - https://github.com/cursor/plugins/tree/main/pstack/skills/unslop

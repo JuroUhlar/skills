@@ -40,4 +40,4 @@ Only these survive:
 
 ## Reviewing
 
-Each comment either matches the keep-list or gets deleted. For "do not remove" or "IMPORTANT" comments, check the claim against the code before keeping it; a constraint that matters is better enforced by a type, test, or lint (see [Encode lessons in structure](../improve-codebase-guardrails/SKILL.md#encode-lessons-in-structure)).
+Each comment either matches the keep-list or gets deleted. For "do not remove" or "IMPORTANT" comments, check the claim against the code before keeping it; a constraint that matters is better enforced by a type, test, or lint (see [Hierarchy of constraints](../improve-codebase-guardrails/SKILL.md#hierarchy-of-constraints)).

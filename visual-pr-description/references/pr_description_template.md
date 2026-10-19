@@ -9,6 +9,10 @@
 
 - {List 1-3 reviewer-relevant warnings, migrations, constraints, deliberate omissions, or surprising decisions. Use "None." when there are no special considerations.}
 
+### Verification
+
+{How the change was proven to work: the command and its output, before vs after, screenshots, or a link to the check script. Name what was not verified. Omit this section when nothing could be run.}
+
 ### Change outline
 
 {Use the smallest combination of the following `/show-me`-style views that explains the implementation. Prefer `diff` blocks for changes to existing shapes and complete blocks for mostly new shapes. Do not include headings for views that are not relevant.}

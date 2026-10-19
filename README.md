@@ -39,12 +39,13 @@ Or copy a skill folder into `~/.claude/skills/`.
    1. [`to-spec`](to-spec/SKILL.md) (spec is client-exposed interface + expected behavior, NOT line-by-line implementation plan)
 3. (Optional) Plan implementation steps
    1. [`to-tickets`](to-tickets/SKILL.md) Prefer building in vertical slices (tracer bullets), not horizontal layers.
-4. Implement. 
+4. Implement.
+   1. [`tdd`](tdd/SKILL.md)
 5. Verify it works
    1. [`verify-with-proof`](verify-with-proof/SKILL.md)
 6. Self-review
    1. [`code-review`](code-review/SKILL.md)
-   2. [`tdd`](tdd/SKILL.md)
+   2. [`tdd`](tdd/SKILL.md) (test audit)
    3. Apply [`core-principles`](core-principles/SKILL.md)
 7. Human review
    1. [`visual-pr-description`](visual-pr-description/SKILL.md)
@@ -61,7 +62,6 @@ Or copy a skill folder into `~/.claude/skills/`.
 ### Agent rules and nudges
 
 * [`write-well`](write-well/SKILL.md)
-  * Say defaults out loud; approval covers only what was shown (superpowers brainstorming)
 * [`code-comments`](code-comments/SKILL.md)
 * [`commit-rules`](commit-rules/SKILL.md)
 * [`orchestrator`](orchestrator/SKILL.md)

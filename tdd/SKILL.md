@@ -5,7 +5,6 @@ metadata:
   inspiration:
     - https://github.com/mattpocock/skills/tree/main/skills/engineering/tdd
     - https://github.com/obra/superpowers/tree/main/skills/test-driven-development
-    - https://github.com/cursor/plugins/tree/main/pstack/skills/tdd
     - https://github.com/cursor/plugins/tree/main/pstack/skills/principle-test-behavior-not-implementation
 ---
 

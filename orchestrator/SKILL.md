@@ -44,7 +44,7 @@ Notes you write get read later as facts. Label guesses: `Assumption: ...`.
 Decide ambiguities yourself and log each one so the user can audit:
 
 ```
-Ruling: <what> — <why> — <cost if wrong>
+Ruling: <what>. Why: <why>. Cost if wrong: <cost>.
 ```
 
 ## Delegation
