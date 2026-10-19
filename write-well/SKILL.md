@@ -1,6 +1,6 @@
 ---
 name: write-well
-description: Use whenever writing or editing prose, docs, comments, commit messages, PR descriptions, or chat responses.
+description: Always appy. Use whenever writing or editing prose, docs, comments, commit messages, PR descriptions, or composing chat responses.
 metadata:
   inspiration:
     - https://github.com/cursor/plugins/tree/main/pstack/skills/unslop
@@ -8,7 +8,7 @@ metadata:
 
 # Write well
 
-## Rules
+## Preferences
 
 * Maximize clarity, brevity, semantic density. Get brevity by cutting content, not by dropping articles or verbs (see [Over-compression](#over-compression)).
 * No walls of text, turn long paragraphs into lists or other structured text.
