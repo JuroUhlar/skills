@@ -28,7 +28,7 @@ Or copy a skill folder into `~/.claude/skills/`.
 
 ## Skills
 
-> Note: when adding or removing a skill, update this list and `.claude-plugin/marketplace.json`.
+> Note: when adding or removing a skill, update this list and run `npm run build` to regenerate `.claude-plugin/marketplace.json`. `npm run check` (also run in CI) catches the rest.
 > Skills prefixed `fp-` are private and gitignored.
 
 ### Building non-trivial stuff
