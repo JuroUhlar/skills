@@ -11,7 +11,7 @@
 
 ### Verification
 
-{How the change was proven to work: the command and its output, before vs after, screenshots, or a link to the check script. Name what was not verified. Omit this section when nothing could be run.}
+{How the change was proven to work end to end from user's POV: the command and its output, before vs after, screenshots, or a link to the check script. Pick one or two highest-signal most end-to-end things. Omit low-level things obvious from CI like lint, unit tests, type-check etc. Name what was not verified. Omit this section when nothing could be run.}
 
 ### Change outline
 

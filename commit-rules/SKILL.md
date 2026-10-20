@@ -14,6 +14,14 @@ metadata:
 
 At the first commit point in a session, ask once: "Commit automatically for the rest of this session?" Remember the answer. Without an answer, don't commit, leave local changes to be inspected by the user.
 
+## Branch naming conventions
+
+* If the work has a ticket ID, use it as prefix.
+* If not, prefix with feat/fix/docs/refactor etc. 
+* Use meaningful names that describe the work
+* GOOD: `INTER-1234-feat-add-login-flow`
+* BAD: `claude/naughty-beaver-hf7402` (never use harness prefixes or random names)
+
 ## Install the repo's commit hooks
 
 Before the first commit, look for hook config (`.husky/`, `lefthook.yml`, `.pre-commit-config.yaml`). If hooks are configured but not active (check `git config core.hooksPath` and `.git/hooks/`), ask the user before installing them.
