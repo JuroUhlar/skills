@@ -37,6 +37,9 @@ Create or update the pull request for the current task with a concise descriptio
      - React component tree changes, including important hooks, state, and package boundaries.
      - Call-tree, call-stack, control-flow, or data-flow changes.
    - Prefer `diff` blocks when showing changes to an existing shape. Show the complete target shape when most of it is new or diff notation would obscure ownership or order.
+   - GitHub colors each `diff` line by its first character: `-` is red, `+` is green. Start a line with `-` only when it is really removed. Never write "old → new" on one line, it renders as a deletion.
+   - Use a Markdown table for a list of items with several attributes each, such as dependency bumps (package, from, to, why).
+   - Keep code block lines under ~80 characters. Longer lines scroll sideways and hide the end.
    - Keep each view focused on what a reviewer needs. Omit categories that did not change.
    - Optional: if you know a ticket id/url, related plan/document urls, or other relevant links, put them in **Context**; otherwise omit **Context**.
 
