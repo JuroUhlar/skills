@@ -56,7 +56,7 @@ Or copy a skill folder into `~/.claude/skills/`.
    2. [`tdd`](tdd/SKILL.md) (test audit)
    3. Apply [`core-principles`](core-principles/SKILL.md)
 7. Human review
-   1. [`visual-pr-description`](visual-pr-description/SKILL.md)
+   1. [`visual-pr-description`](visual-pr-description/SKILL.md) ships a [PR-create hook](visual-pr-description/hooks/pr-create-reminder.sh) (Claude Code plugin only) that reminds Claude to write a new PR's body with this skill.
       * [`show-me`](show-me/SKILL.md)
    2. [`stage-pr`](stage-pr/SKILL.md)
    3. [`pr-comments`](pr-comments/SKILL.md)

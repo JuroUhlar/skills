@@ -17,7 +17,8 @@ Create or update the pull request for the current task with a concise descriptio
 
 2. Find the pull request:
    - Check the current branch for a PR with `gh pr view --json url,number,title,state,baseRefName,headRefName 2>/dev/null`.
-   - If no PR exists, stop and offer to open one with [`stage-pr`](../stage-pr/SKILL.md). Don't commit, push, or create a PR from this skill; committing follows [`commit-rules`](../commit-rules/SKILL.md).
+   - If no PR exists and you are about to create one (for example in [`stage-pr`](../stage-pr/SKILL.md)), write the body now and pass it to the create call.
+   - If no PR exists otherwise, stop and offer to open one with [`stage-pr`](../stage-pr/SKILL.md). Don't commit, push, or create a PR from this skill; committing follows [`commit-rules`](../commit-rules/SKILL.md).
 
 3. If necessary, gather only the context needed to explain the change:
    - Read the ticket and any relevant task artifacts.
@@ -41,7 +42,7 @@ Create or update the pull request for the current task with a concise descriptio
    - Optional: if you know a ticket id/url, related plan/document urls, or other relevant links, put them in **Context**; otherwise omit **Context**.
 
 5. Save and publish the description:
-   - Update the PR with `gh pr edit {number} --body` and a quoted heredoc.
+   - Update the PR with `gh pr edit {number} --body` and a quoted heredoc, or pass the body to the create call when the PR doesn't exist yet.
    - Confirm the update succeeded.
 
 6. Report completion with a short summary and link to the PR.

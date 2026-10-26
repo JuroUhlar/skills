@@ -1,0 +1,16 @@
+{
+  "description": "Remind Claude to write a new PR's body with the visual-pr-description template.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|mcp__.*__create_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/pr-create-reminder.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

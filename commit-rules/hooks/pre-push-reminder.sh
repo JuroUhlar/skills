@@ -29,4 +29,4 @@ if [[ -n "$branch" ]] && ! git -C "$dir" rev-parse --abbrev-ref '@{upstream}' >/
   fi
 fi
 
-respond additionalContext "After this push: if the branch has an open PR (gh pr view), check that the PR description still matches the commits and update it if not."
+respond additionalContext "After this push: if the branch has an open PR (gh pr view), check that the PR description still matches the commits and update it with the visual-pr-description skill if not."

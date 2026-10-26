@@ -48,6 +48,15 @@
                 "command": "\"${CLAUDE_PLUGIN_ROOT}/commit-rules/hooks/pre-push-reminder.sh\""
               }
             ]
+          },
+          {
+            "matcher": "Bash|mcp__.*__create_pull_request",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "\"${CLAUDE_PLUGIN_ROOT}/visual-pr-description/hooks/pr-create-reminder.sh\""
+              }
+            ]
           }
         ]
       }

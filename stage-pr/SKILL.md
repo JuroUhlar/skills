@@ -7,7 +7,7 @@ description: >-
 
 # Make a PR reviewable
 
-Open a PR in a draft state. Keep iterating until CI is green and the requested Copilot review approves. Leave the PR in draft.
+Open a PR in a draft state, with its body written by [`visual-pr-description`](../visual-pr-description/SKILL.md). Keep iterating until CI is green and the requested Copilot review approves. Leave the PR in draft.
 
 ## Related skills 
 
