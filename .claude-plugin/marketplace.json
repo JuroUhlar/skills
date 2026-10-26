@@ -20,6 +20,7 @@
         "./core-principles",
         "./create-verification-skill",
         "./diagnose-bug",
+        "./edit-notion-page",
         "./grill-me",
         "./handoff",
         "./improve-codebase-architecture",
@@ -110,6 +111,15 @@
       "name": "diagnose-bug",
       "description": "Use when the user says \"diagnose\" or \"debug this\", or reports something broken, throwing, failing, flaky, or slow whose cause isn't obvious.",
       "source": "./diagnose-bug",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "edit-notion-page",
+      "description": "Use when creating, editing, or rewriting a Notion page through the Notion MCP (notion-update-page, update_content, replace_content).",
+      "source": "./edit-notion-page",
       "strict": false,
       "skills": [
         "./"

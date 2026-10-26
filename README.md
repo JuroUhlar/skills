@@ -84,6 +84,10 @@ Or copy a skill folder into `~/.claude/skills/`.
 * [`write-agent-skill`](write-agent-skill/SKILL.md)
 * [`handoff`](handoff/SKILL.md)
 
+### Tools
+
+* [`edit-notion-page`](edit-notion-page/SKILL.md)
+
 ## Evals
 
 [`evals/`](evals) checks which skill loads for typical opening prompts. Each run is a real model call on your account (about $0.12 per case). To run it against the working tree:
