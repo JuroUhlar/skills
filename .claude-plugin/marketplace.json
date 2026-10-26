@@ -21,6 +21,7 @@
         "./create-verification-skill",
         "./diagnose-bug",
         "./grill-me",
+        "./handoff",
         "./improve-codebase-architecture",
         "./improve-codebase-docs",
         "./improve-codebase-guardrails",
@@ -109,6 +110,15 @@
       "name": "grill-me",
       "description": "Relentless interview to sharpen a plan, decision, or design until every branch is resolved. Use when the user invokes grill-me or asks to be grilled.",
       "source": "./grill-me",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "handoff",
+      "description": "Write a handoff summary of the current conversation so a fresh session can continue the work. Use when the user invokes handoff or asks for a handoff summary.",
+      "source": "./handoff",
       "strict": false,
       "skills": [
         "./"

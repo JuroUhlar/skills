@@ -82,6 +82,7 @@ Or copy a skill folder into `~/.claude/skills/`.
 ### Meta
 
 * [`write-agent-skill`](write-agent-skill/SKILL.md)
+* [`handoff`](handoff/SKILL.md)
 
 ## Evals
 
