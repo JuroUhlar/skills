@@ -18,10 +18,14 @@ Find the highest-leverage defects in a change. Signal over volume: few high-conf
 2. **Intent**, one paragraph, from the first source found: user-supplied → PR description / linked issue → spec under `docs/`, `specs/`, `.scratch/` → commit messages (weak; say so). Nothing found: ask once; user says none → skip the Spec axis. Judge execution of the goal; don't question the goal.
 3. **Standards sources:** repo docs on how to write code (`STANDARDS.md`, `CONTRIBUTING.md` and its design constraints and product decisions, `AGENTS.md`, rules). They override the smell baseline.
 4. **Risk surfaces:** auth, secrets/crypto, payments, input validation, concurrency, DB writes/migrations, caching, public API contracts, perf-critical paths. Higher risk = stricter evidence bar.
+5. **Declare the mode** before reading the diff, one line the user can correct: `Mode: sub-agents | direct (<reason>); Risk: <surfaces>`.
 
 ## Run
 
-Small change: review directly, no sub-agents. Large: three parallel sub-agents (**Spec**, **Standards**, **Production**); the orchestrator doesn't pre-read the diff, it only aggregates. Keep axes separate until aggregation.
+- **Large** = over ~300 changed non-test lines, or any risk surface touched. Unsure → large.
+- Large: three parallel sub-agents (**Spec**, **Standards**, **Production**); the orchestrator doesn't pre-read the diff, it only aggregates. Keep axes separate until aggregation.
+- Otherwise: review directly, no sub-agents.
+- BAD: "the diff is mostly tests, I'll review it myself" on a change that touches DB writes. Size is not the only trigger.
 
 Every sub-agent prompt:
 - Crafted context only: intent, diff command, commit list, axis brief. Never your session history.
@@ -74,11 +78,12 @@ You hold context the sub-agents lack (constraints, what was tried, scaffolding v
 
 ## Prove it
 
-Sub-agents report suspected defects; the orchestrator tries to demonstrate each P0/P1 with the [`verify-with-proof`](../verify-with-proof/SKILL.md) skill, when cheap (minutes, no new infra):
+Sub-agents report suspected defects; the orchestrator attempts to demonstrate each P0/P1 with the [`verify-with-proof`](../verify-with-proof/SKILL.md) skill. Attempting is the default, not an optional extra:
 - Smallest red-capable probe: a failing test, script, or request that shows the claimed symptom on the change. If it's claimed as a regression, show it passes on the base.
 - Run in a separate worktree or temp dir. Never modify the reviewed checkout; don't commit the probe.
 - Probe passes (bug doesn't reproduce) → drop or downgrade the finding.
-- Too costly or needs unavailable access → don't skip silently; mark `unproven` and keep the traced path.
+- Not attempted needs a one-line reason the probe is impossible (needs prod data, a real third-party account, new infra); mark `unproven: <reason>` and keep the traced path. "Didn't try" or "traced is enough" is not a reason.
+- A unit test with the existing mocks usually takes minutes; it's rarely impossible.
 - Attach the command and redacted output to the finding, so the author can re-run it.
 
 ## Severity
@@ -92,8 +97,9 @@ Default P1/P2. Most smells are P2/P3 unless they cause a real defect.
 
 ## Output
 
+0. **Process**: mode and why, sub-agents run (axes, models), findings proven vs unproven, steps skipped and why. Skipped steps surface here, not only when the user asks.
 1. **Strengths**: specific, brief; omit if nothing stands out.
-2. **Findings**, ordered P0 → P3, numbered: `#<n> P<sev>: <title> [<axes>]`, then refs (file, line, symbol), impact, fix direction, `Proof:` proven (command → output) | traced | unproven.
+2. **Findings**, ordered P0 → P3, numbered: `#<n> P<sev>: <title> [<axes>]`, then refs (file, line, symbol), impact, fix direction, `Proof:` proven (command → output) | unproven: <reason>. P3 may use `traced`.
 3. **Dismissed**: one line + reason each, so the user can override.
 4. **Declined to judge** (from Spec) and **Open questions**: only blockers or ambiguities.
 5. **Summary**: one paragraph, verdict (approve / approve with follow-ups / request changes), counts per axis after dedup.
