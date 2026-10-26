@@ -53,6 +53,23 @@ function frontmatter(skill: string): Frontmatter {
   }
 }
 
+/**
+ * Merge every skill's hooks/hooks.json for the bundle. A skill's own plugin loads its file
+ * automatically, but the bundle's root is the repo, so script paths gain the skill folder.
+ */
+function bundleHooks(skills: string[]): Record<string, unknown[]> | undefined {
+  const merged: Record<string, unknown[]> = {};
+  for (const skill of skills) {
+    const file = join(ROOT, skill, "hooks", "hooks.json");
+    if (!existsSync(file)) continue;
+    const text = readFileSync(file, "utf8").replaceAll("${CLAUDE_PLUGIN_ROOT}/", `\${CLAUDE_PLUGIN_ROOT}/${skill}/`);
+    for (const [event, matchers] of Object.entries(JSON.parse(text).hooks as Record<string, unknown[]>)) {
+      (merged[event] ??= []).push(...matchers);
+    }
+  }
+  return Object.keys(merged).length ? merged : undefined;
+}
+
 function renderMarketplace(): string {
   const marketplace = JSON.parse(readFileSync(MARKETPLACE, "utf8"));
   const skills = publicSkills();
@@ -63,6 +80,7 @@ function renderMarketplace(): string {
     source: "./",
     strict: false,
     skills: skills.map((skill) => `./${skill}`),
+    hooks: bundleHooks(skills),
   };
   marketplace.plugins = [
     bundle,

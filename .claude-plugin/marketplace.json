@@ -36,7 +36,20 @@
         "./visual-pr-description",
         "./write-agent-skill",
         "./write-well"
-      ]
+      ],
+      "hooks": {
+        "PreToolUse": [
+          {
+            "matcher": "Bash",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "\"${CLAUDE_PLUGIN_ROOT}/commit-rules/hooks/pre-push-reminder.sh\""
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "name": "code-comments",
