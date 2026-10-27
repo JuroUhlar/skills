@@ -18,13 +18,13 @@ Find the highest-leverage defects in a change. Signal over volume: few high-conf
 2. **Intent**, one paragraph, from the first source found: user-supplied → PR description / linked issue → spec under `docs/`, `specs/`, `.scratch/` → commit messages (weak; say so). Nothing found: ask once; user says none → skip the Spec axis. Judge execution of the goal; don't question the goal.
 3. **Standards sources:** repo docs on how to write code (`STANDARDS.md`, `CONTRIBUTING.md` and its design constraints and product decisions, `AGENTS.md`, rules). They override the smell baseline.
 4. **Risk surfaces:** auth, secrets/crypto, payments, input validation, concurrency, DB writes/migrations, caching, public API contracts, perf-critical paths. Higher risk = stricter evidence bar.
-5. **Declare the mode** before reading the diff, one line the user can correct: `Mode: sub-agents | direct (<reason>); Risk: <surfaces>`.
+5. **Declare the mode** before reading the diff, one line the user can correct: `Mode: sub-agents | single sub-agent | direct (<reason>); Risk: <surfaces>`.
 
 ## Run
 
 - **Large** = over ~300 changed non-test lines, or any risk surface touched. Unsure → large.
 - Large: three parallel sub-agents (**Spec**, **Standards**, **Production**); the orchestrator doesn't pre-read the diff, it only aggregates. Keep axes separate until aggregation.
-- Otherwise: review directly, no sub-agents.
+- Otherwise: review directly, no sub-agents. Exception: if you wrote the change, one sub-agent reviews it on all three axes, so the review isn't anchored on your own reasoning.
 - BAD: "the diff is mostly tests, I'll review it myself" on a change that touches DB writes. Size is not the only trigger.
 
 Every sub-agent prompt:
