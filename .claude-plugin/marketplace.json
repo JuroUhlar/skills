@@ -29,6 +29,7 @@
         "./orchestrator",
         "./pmode",
         "./pr-comments",
+        "./security-advisory",
         "./show-me",
         "./stage-pr",
         "./tdd",
@@ -192,6 +193,15 @@
       "name": "pr-comments",
       "description": "Use when replying to or resolving PR review comments, addressing review feedback, or staging/drafting PR review comments without posting them.",
       "source": "./pr-comments",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "security-advisory",
+      "description": "Use when drafting, reviewing, or publishing a security advisory (GHSA, CVE) for a vulnerability in your own project.",
+      "source": "./security-advisory",
       "strict": false,
       "skills": [
         "./"
