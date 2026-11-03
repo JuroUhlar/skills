@@ -80,8 +80,9 @@ A vulnerability with no confirmed or suspected exploitation usually falls under 
 ## Publish in order
 
 1. Get Security to review the draft.
-2. Release the fix, or a mitigation, that users who patch themselves can apply.
-3. Notify affected customers and patch the deployments you manage.
-4. Create the draft advisory and request the CVE.
-5. Publish from the repository's advisory UI.
-6. Add a line linking the advisory to the fixed release's notes.
+2. Create the draft advisory and request the CVE.
+3. Patch the deployments you manage, no later than the public release of the fix.
+4. Release the fix, or a mitigation, that users who patch themselves can apply.
+5. Notify affected customers.
+6. Publish from the repository's advisory UI.
+7. Add a line linking the advisory to the fixed release's notes.
