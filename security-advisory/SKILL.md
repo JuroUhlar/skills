@@ -64,7 +64,7 @@ In "Are you affected?", separate users the vendor already patched (managed, auto
 
 ### Ecosystem "Other"
 
-Use it when the artifact isn't on a package registry. Dependabot then sends no alerts, so the advisory page and direct outreach are the only notifications.
+Use it only when no supported ecosystem applies (check GitHub Actions too, not just package registries). Dependabot then sends no alerts, so the advisory page and direct outreach are the only notifications.
 
 ### Request the CVE early
 
@@ -80,7 +80,8 @@ A vulnerability with no confirmed or suspected exploitation usually falls under 
 ## Publish in order
 
 1. Get Security to review the draft.
-2. Notify affected customers and patch the deployments you manage.
-3. Create the draft advisory and request the CVE.
-4. Publish from the repository's advisory UI.
-5. Add a line linking the advisory to the fixed release's notes.
+2. Release the fix, or a mitigation, that users who patch themselves can apply.
+3. Notify affected customers and patch the deployments you manage.
+4. Create the draft advisory and request the CVE.
+5. Publish from the repository's advisory UI.
+6. Add a line linking the advisory to the fixed release's notes.
