@@ -79,6 +79,10 @@ Or copy a skill folder into `~/.claude/skills/`.
 
 * [`diagnose-bug`](diagnose-bug/SKILL.md)
 
+### Security
+
+* [`security-advisory`](security-advisory/SKILL.md)
+
 ### Meta
 
 * [`write-agent-skill`](write-agent-skill/SKILL.md)
