@@ -22,7 +22,7 @@ Find the highest-leverage defects in a change. Signal over volume: few high-conf
 
 ## Run
 
-- **Large** = over ~300 changed non-test lines, or any risk surface touched. Unsure → large.
+- **Large** = over ~300 changed non-test lines, a one-way door on prod, or any risk surface touched. Unsure → large.
 - Large: three parallel sub-agents (**Spec**, **Standards**, **Production**); the orchestrator doesn't pre-read the diff, it only aggregates. Keep axes separate until aggregation.
 - Otherwise: review directly, no sub-agents. Exception: if you wrote the change, one sub-agent reviews it on all three axes, so the review isn't anchored on your own reasoning.
 - BAD: "the diff is mostly tests, I'll review it myself" on a change that touches DB writes. Size is not the only trigger.
