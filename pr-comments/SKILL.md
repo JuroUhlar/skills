@@ -1,6 +1,6 @@
 ---
 name: pr-comments
-description: Use when replying to or resolving PR review comments, addressing review feedback, or staging/drafting PR review comments without posting them.
+description: Use when replying to or resolving PR review comments, or staging/drafting PR review comments without posting them. Covers mechanics, not judgment about what to fix.
 ---
 
 # PR comments

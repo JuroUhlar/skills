@@ -28,8 +28,10 @@ If the work has a ticket (in the branch name, like `INTER-1234-feat-...`, or in 
 Refresh state every pass with `gh pr view` and `gh pr checks` (`--watch`). 
 For every failure or review finding 
 
-* Read failing CI log (if exists)
-* Fix the failure
+* Read failing CI log (if exists) and fix failures if they are in this PR or easy to fix. 
+  * If the failure is outside this PR or hard to fix, report it and ask the user to fix it.
+* Review Copilot findings without getting bullied into scope creep.
+  * Fix real issues or even small nits but push back against large changes beyond the original scope and goal. 
 * Verify locally (if cheap)
 * Push 
 * CI starts automatically but you must re-request Copilot review (see below)
@@ -37,7 +39,7 @@ For every failure or review finding
 Stop when both are true on the current head:
 
 - CI is green.
-- The latest Copilot review is on the current head SHA and leaves no unresolved comments.
+- The latest Copilot review is on the current head SHA, and every comment is fixed or declined with a reply.
 
 ## Request a Copilot review
 

@@ -84,6 +84,10 @@ For a new interface or architecture with no precedent in the codebase:
 ### Deep modules
 
 Lots of behavior behind a small interface. The interface is everything a caller must know: signature, invariants, ordering, error modes, config, performance.
+- Hide implementation details. Names, types, and errors say what the module does for the caller, not how (transport, storage, library). A leaked detail spreads to every caller, and changing it breaks them all.
+  - BAD: `onPut(item)` tells callers the save is an HTTP PUT. Switching to PATCH renames every caller.
+  - GOOD: `onSave(item)`.
+  - BAD: throwing the database driver's `UniqueViolationError` to callers. GOOD: `EmailTakenError`.
 - Deletion test: delete the module in your head. If complexity vanishes, it was a pass-through; if it reappears across callers, it earns its keep.
 - Don't extract an interface that only one class implements. Add it when a second implementation exists (e.g. a test fake).
 - Test through the interface. Needing to test past it means the module has the wrong shape (see [Interfaces: where tests go](../tdd/SKILL.md#interfaces-where-tests-go)).

@@ -18,7 +18,7 @@ Find the highest-leverage defects in a change. Signal over volume: few high-conf
 2. **Intent**, one paragraph, from the first source found: user-supplied → PR description / linked issue → spec under `docs/`, `specs/`, `.scratch/` → commit messages (weak; say so). Nothing found: ask once; user says none → skip the Spec axis. Judge execution of the goal; don't question the goal.
 3. **Standards sources:** repo docs on how to write code (`STANDARDS.md`, `CONTRIBUTING.md` and its design constraints and product decisions, `AGENTS.md`, rules). They override the smell baseline.
 4. **Risk surfaces:** auth, secrets/crypto, payments, input validation, concurrency, DB writes/migrations, caching, public API contracts, perf-critical paths. Higher risk = stricter evidence bar.
-5. **Prior discussion** (PRs): read existing reviews and threads (`gh pr view --comments`, `gh api repos/<o>/<r>/pulls/<n>/comments`). Drop findings the author already answered unless you have new evidence.
+5. **Prior discussion** (PRs): read the description, top-level comments, review bodies, and every inline thread, including resolved and outdated ones (`gh pr view --comments`, `gh api --paginate repos/<o>/<r>/pulls/<n>/comments`, GraphQL `reviewThreads` for `isResolved`/`isOutdated`). Read the replies too. Deferrals often live in a top-level comment, not on the line. Used in [Reconcile with prior discussion](#reconcile-with-prior-discussion).
 6. **Declare the mode** before reading the diff, sized from `git diff --stat`, one line the user can correct: `Mode: sub-agents | single sub-agent | direct (<reason>); Risk: <surfaces>`.
 
 ## Run
@@ -78,6 +78,21 @@ You hold context the sub-agents lack (constraints, what was tried, scaffolding v
 - Same issue on several axes → one finding, highest severity, Production framing if it's a real defect, tag every axis (`[production, spec]`).
 - More than ~5 blocking items → filter harder.
 
+### Stay inside the change's intent
+
+Judge the change against its intent (Setup step 2), not against the ideal codebase. A finding whose fix grows the change (a new feature, refactoring code the change doesn't need, hardening paths it doesn't touch) goes under **Follow-ups**, never as a blocker, even when it's correct.
+- BAD: "request changes: also add retries to the other three API clients" on a PR that fixes one client's timeout.
+- GOOD: the timeout fix gets reviewed; "other clients have the same gap" goes under Follow-ups.
+
+### Reconcile with prior discussion
+
+Before the output, check each finding against the PR discussion (Setup step 5) and link the thread:
+- Already fixed → drop.
+- Raised before, still open → report as existing, not as a new discovery.
+- Explicitly deferred or accepted → drop, unless you have new evidence the trade-off is wrong. Then say why it's wrong.
+- Discussion says a follow-up PR fixes it → read that PR's code; don't assume it does.
+- Couldn't read the full discussion → say so under Process.
+
 ## Prove it
 
 Sub-agents report suspected defects; the orchestrator attempts to demonstrate each P0/P1 with the [`verify-with-proof`](../verify-with-proof/SKILL.md) skill. Attempting is the default, not an optional extra:
@@ -104,6 +119,7 @@ Default P1/P2. Most smells are P2/P3 unless they cause a real defect.
 0. **Process**: mode and why, sub-agents run (axes, models), findings proven vs unproven, steps skipped and why. Skipped steps surface here, not only when the user asks.
 1. **Strengths**: specific, brief; omit if nothing stands out.
 2. **Findings**, ordered P0 → P3, numbered: `#<n> P<sev>: <title> [<axes>]`, then refs (file, line, symbol), impact, fix direction, `Proof:` proven (command → output) | unproven: <reason>. P3 may use `traced`.
-3. **Dismissed**: one line + reason each, so the user can override.
-4. **Declined to judge** (from Spec) and **Open questions**: only blockers or ambiguities.
-5. **Summary**: one paragraph, verdict (approve / approve with follow-ups / request changes), counts per axis after dedup.
+3. **Follow-ups**: out-of-intent work, one line each. Not blocking.
+4. **Dismissed**: one line + reason each, including findings dropped as already discussed, so the user can override.
+5. **Declined to judge** (from Spec) and **Open questions**: only blockers or ambiguities.
+6. **Summary**: one paragraph, verdict (approve / approve with follow-ups / request changes), counts per axis after dedup.
