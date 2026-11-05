@@ -6,7 +6,7 @@ description: Use when writing, editing, or reviewing agent skills.
 - optimize for semantic density, brevity, and readability.
 - must be generic (not rely on specific harness, model, codebase structure, etc.)
 - prefer bullet points over paragraphs of 3+ lines.
-- give each substantial linkable unit (principle, rule, step) its own sub heading so it can be linked to directly.
+- short skills (default, < 30 lines) can just be nested bullet points, longer skills need sub headings for each substantial linkable unit (principle, rule, step).
 - use BAD vs GOOD examples when useful to illustrate, but don't overdo it.
 - `description` is only to trigger the skill, not summarize it, not describe it.
 - only keep non-obvious stuff that a current mid-sized SOTA model (Opus 5.5, Sol 6) wouldn't already know or do by default from training data
