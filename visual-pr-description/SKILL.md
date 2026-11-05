@@ -46,7 +46,7 @@ Create or update the pull request for the current task with a concise descriptio
    - Keep code block lines under ~80 characters. Longer lines scroll sideways and hide the end.
    - Keep each view focused on what a reviewer needs. Omit categories that did not change.
    - Never just duplicate a part of the diff in the PR body.
-   - Optional: if you know a ticket id/url, related plan/document urls, or other relevant links, put them in **Context**; otherwise omit **Context**.
+   - **Context**: the ticket link first, if the work has a ticket, so readers can jump to it. Then related plans, documents, or other links. Omit **Context** when there are none.
 
 5. Save and publish the description:
    - Update the PR with `gh pr edit {number} --body` and a quoted heredoc, or pass the body to the create call when the PR doesn't exist yet.

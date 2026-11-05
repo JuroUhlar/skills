@@ -9,6 +9,8 @@ description: >-
 
 Open a PR in a draft state, with its body written by [`visual-pr-description`](../visual-pr-description/SKILL.md). Keep iterating until CI is green and the requested Copilot review approves. Leave the PR in draft.
 
+If the work has a ticket (in the branch name, like `INTER-1234-feat-...`, or in the conversation), start the title with `<KEY>: ` and link the ticket in the body. No ticket: ask once whether to link an existing one, create one, or open without.
+
 ## Related skills 
 
 * [`visual-pr-description`](../visual-pr-description/SKILL.md)
