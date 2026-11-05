@@ -17,17 +17,28 @@ branch=$(git -C "${dir:-.}" branch --show-current 2>/dev/null)
 args=$(sed -E 's/.*git([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+push//; s/(&&|\|\||;|\|).*//' <<<"$command")
 read -ra words <<<"$args"
 positional=()
-for w in "${words[@]}"; do [[ "$w" == -* ]] || positional+=("$w"); done
+skip=0
+for w in "${words[@]}"; do
+  if ((skip)); then skip=0; continue; fi
+  case "$w" in
+    -o|--push-option|--repo|--receive-pack|--exec) skip=1 ;;  # option value is the next word
+    -*) ;;
+    *) positional+=("$w") ;;
+  esac
+done
+new_dst=""
+explicit=0
 for spec in "${positional[@]:1}"; do
   dst=${spec#+}; dst=${dst##*:}; dst=${dst#refs/heads/}
   [[ "$dst" == HEAD || -z "$dst" ]] && continue
+  explicit=1
   # Ask the remote: shallow clones often track only the default branch.
-  if git -C "${dir:-.}" ls-remote --exit-code --heads "${positional[0]}" "$dst" >/dev/null 2>&1; then
-    branch=""
-  else
-    branch=$dst
+  if ! git -C "${dir:-.}" ls-remote --exit-code --heads "${positional[0]}" "$dst" >/dev/null 2>&1; then
+    new_dst=$dst
+    break
   fi
 done
+((explicit)) && branch=$new_dst
 
 respond() {
   jq -n --arg field "$1" --arg text "$2" --arg decision "$3" \
@@ -37,7 +48,7 @@ respond() {
 
 # No upstream means the branch name isn't public yet. Block once per commit, not per branch,
 # so the push after a rename passes.
-if [[ -n "$branch" ]] && ! git -C "$dir" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
+if [[ -n "$branch" ]] && { [[ -n "$new_dst" ]] || ! git -C "$dir" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; }; then
   marker="${TMPDIR:-/tmp}/claude-pre-push/$(git -C "$dir" rev-parse --show-toplevel HEAD | git hash-object --stdin | cut -c1-16)"
   if [[ ! -e "$marker" ]]; then
     mkdir -p "$(dirname "$marker")" && touch "$marker"
