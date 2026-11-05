@@ -228,7 +228,7 @@
     },
     {
       "name": "stage-pr",
-      "description": "Open a draft pull request for current work or branch. Iterate until CI is green and Copilot review approves. Use when the user asks to stage a PR or make a PR reviewable or ready for review.",
+      "description": "Open a draft pull request for current work or branch. Iterate until CI is green and Copilot review approves. Use when the user asks to open, create, or stage a PR, or make a PR reviewable or ready for review.",
       "source": "./stage-pr",
       "strict": false,
       "skills": [
@@ -237,7 +237,7 @@
     },
     {
       "name": "tdd",
-      "description": "Use when building a feature or fixing a bug test-first, when asked for red-green-refactor, a failing test, or a regression test, when writing or changing tests, and when asked to audit, review, or evaluate test coverage or test quality.",
+      "description": "Use when writing, changing, or rewriting tests, when building a feature or fixing a bug test-first, when asked for red-green-refactor, a failing test, or a regression test, and when asked to audit, review, or evaluate test coverage or test quality.",
       "source": "./tdd",
       "strict": false,
       "skills": [

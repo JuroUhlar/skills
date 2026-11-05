@@ -45,6 +45,7 @@ Most result for least code.
 
 - Remove dead code, stale shims, and unused options before building on them.
 - Remove speculative validators, options, or extension points.
+- Before working around a broken tool, integration, or process step, ask whether to fix or remove it instead. Prevent a mistake where it's made rather than adding a step that repairs it afterwards.
 - Before deleting something that looks wrong, check history and PRs for why it exists. Don't infer intent from the code; a consistent pattern may be copy-paste.
 
 ### Pre-factor

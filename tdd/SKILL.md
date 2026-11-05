@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Use when building a feature or fixing a bug test-first, when asked for red-green-refactor, a failing test, or a regression test, when writing or changing tests, and when asked to audit, review, or evaluate test coverage or test quality.
+description: Use when writing, changing, or rewriting tests, when building a feature or fixing a bug test-first, when asked for red-green-refactor, a failing test, or a regression test, and when asked to audit, review, or evaluate test coverage or test quality.
 metadata:
   inspiration:
     - https://github.com/mattpocock/skills/tree/main/skills/engineering/tdd
