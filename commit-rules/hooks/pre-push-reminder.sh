@@ -20,6 +20,7 @@ positional=()
 skip=0
 for w in "${words[@]}"; do
   if ((skip)); then skip=0; continue; fi
+  w=${w//[\"\']/}
   case "$w" in
     -o|--push-option|--repo|--receive-pack|--exec) skip=1 ;;  # option value is the next word
     -*) ;;
@@ -32,8 +33,9 @@ for spec in "${positional[@]:1}"; do
   dst=${spec#+}; dst=${dst##*:}; dst=${dst#refs/heads/}
   [[ "$dst" == HEAD || -z "$dst" ]] && continue
   explicit=1
+  [[ "$dst" == refs/* ]] && continue  # still qualified after stripping refs/heads/: a tag or note
   # Ask the remote: shallow clones often track only the default branch.
-  if ! git -C "${dir:-.}" ls-remote --exit-code --heads "${positional[0]}" "$dst" >/dev/null 2>&1; then
+  if ! git -C "${dir:-.}" ls-remote --exit-code "${positional[0]}" "refs/heads/$dst" >/dev/null 2>&1; then
     new_dst=$dst
     break
   fi
@@ -52,7 +54,7 @@ if [[ -n "$branch" ]] && { [[ -n "$new_dst" ]] || ! git -C "$dir" rev-parse --ab
   marker="${TMPDIR:-/tmp}/claude-pre-push/$(git -C "$dir" rev-parse --show-toplevel HEAD | git hash-object --stdin | cut -c1-16)"
   if [[ ! -e "$marker" ]]; then
     mkdir -p "$(dirname "$marker")" && touch "$marker"
-    respond permissionDecisionReason "First push of branch '$branch', so its name becomes public. It must describe the work: ticket ID or feat/fix/docs prefix plus meaningful words, e.g. INTER-1234-feat-add-login-flow. Never random words or harness names like claude/naughty-beaver-hf7402. If the name is bad, rename it (git branch -m <new-name>). Then run the push again; it won't be blocked a second time. This blocked the whole command: nothing in it ran, including a git commit chained before the push." deny
+    respond permissionDecisionReason "First push of branch '$branch', so its name becomes public. It must describe the work: ticket ID or feat/fix/docs prefix plus meaningful words, e.g. INTER-1234-feat-add-login-flow. Never random words or harness names like claude/naughty-beaver-hf7402. If the name is bad, rename it: the local branch (git branch -m <new-name>), or the destination in an explicit <src>:<dst> refspec. Then run the push again; it won't be blocked a second time. This blocked the whole command: nothing in it ran, including a git commit chained before the push." deny
     exit 0
   fi
 fi
