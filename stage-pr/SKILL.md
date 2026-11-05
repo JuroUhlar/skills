@@ -23,12 +23,27 @@ For every failure or review finding
 * Fix the failure
 * Verify locally (if cheap)
 * Push 
-* CI starts automatically but you must re-request Copilot review
+* CI starts automatically but you must re-request Copilot review (see below)
 
 Stop when both are true on the current head:
 
 - CI is green.
-- The latest requested Copilot review approves that head.
+- The latest Copilot review is on the current head SHA and leaves no unresolved comments.
+
+## Request a Copilot review
+
+The GitHub MCP `request_copilot_review` tool and `gh pr edit --add-reviewer @copilot` fail or silently do nothing. Use:
+
+```sh
+gh api -X POST repos/{owner}/{repo}/pulls/{n}/requested_reviewers -f 'reviewers[]=copilot-pull-request-reviewer[bot]'
+```
+
+Confirm it landed with `gh pr view {n} --json reviewRequests`. If it's still empty, use GraphQL:
+
+```sh
+gh api graphql -f id="$(gh pr view {n} --json id -q .id)" -f query='mutation($id: ID!) {
+  requestReviewsByLogin(input: {pullRequestId: $id, botLogins: ["copilot-pull-request-reviewer"], union: true}) { clientMutationId } }'
+```
 
 When done, report the PR URL after a fresh read shows green CI and a Copilot approval of the current head.
 

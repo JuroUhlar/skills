@@ -7,7 +7,7 @@ Heavily inspired by [pstack](https://github.com/cursor/plugins/tree/main/pstack)
 
 ## Install
 
-Install the `all` plugin to get every skill, including the [`pmode`](pmode/SKILL.md) router that links them into one workflow. Or install individual skills; each is its own plugin. Don't install both, or every skill loads twice.
+Install the `all` plugin to get every skill, including the [`pmode`](pmode/SKILL.md) router that links them into one workflow. Or install individual skills; each is its own plugin. Don't install both, or every skill loads twice. The same applies to plugins installed in claude.ai: Claude Code syncs them in as `<name>@synced`. `setup/install.sh` disables those.
 
 Claude Code:
 
@@ -28,7 +28,7 @@ Any agent harness, with [`skills`](https://github.com/vercel-labs/skills):
 npx skills add JuroUhlar/skills
 ```
 
-Or copy a skill folder into `~/.claude/skills/`.
+Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](setup/install.sh) to get the hooks and global rules; see `Claude Code installation.md`.
 
 ## Skills
 
