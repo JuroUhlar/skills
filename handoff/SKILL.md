@@ -1,7 +1,6 @@
 ---
 name: handoff
-description: Write a handoff summary of the current conversation so a fresh session can continue the work. Use when the user invokes handoff or asks for a handoff summary.
-disable-model-invocation: true
+description: Use when the user invokes handoff, asks for a handoff summary, or asks for a prompt to continue the work in a new session or another agent.
 ---
 
 # Handoff

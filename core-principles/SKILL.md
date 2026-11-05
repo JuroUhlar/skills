@@ -34,7 +34,7 @@ If you think the request or goal is based on incorrect assumptions (even if impl
 Most result for least code.
 - Smallest diff that solves the problem; prefer deletion.
 - Improvements outside the task go in a separate PR or a note.
-- Before building, search for an existing implementation by domain concept, not the request's wording.
+- Before building, search for an existing implementation by domain concept, not the request's wording. Also look for an existing fix: an open PR, a reviewer pointing to one, a setting that makes the code unnecessary.
 - Prefer native platform behavior over reimplementing it; hand-rolled copies miss edge cases.
 - Don't build something "just in case" or "for the future".
   - Exception: If future is certain or the future-proof alternative is the same cost.

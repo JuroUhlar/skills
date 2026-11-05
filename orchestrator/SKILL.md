@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Use when running long or multi-step work, delegating to subagents or parallel agents, working autonomously while the user is away, or resuming after context compaction.
+description: Use when running long or multi-step work, delegating to subagents or parallel agents, working autonomously while the user is away ("I'm going to bed", "keep working on your own"), or resuming after context compaction.
 metadata:
   inspiration:
     - https://github.com/cursor/plugins/tree/main/pstack
@@ -39,6 +39,10 @@ Notes you write get read later as facts. Label guesses: `Assumption: ...`.
 - Reversible work: proceed, then present the result.
 - Irreversible, security-relevant, or externally visible actions (push, deploy, send, delete): confirm first.
 
+### Ask before the user leaves
+
+When the user says they're leaving, ask now for everything only they can give: repro environment (browser, OS, device), credentials, product decisions. Then work.
+
 ### Rulings, not stalls
 
 Decide ambiguities yourself and log each one so the user can audit:
@@ -48,6 +52,10 @@ Ruling: <what>. Why: <why>. Cost if wrong: <cost>.
 ```
 
 ## Delegation
+
+### Check before relaying
+
+A delegate's claim is a lead, not a finding. Check it before passing it on, per [`verify-with-proof`](../verify-with-proof/SKILL.md#delegation).
 
 ### Brief with links
 
@@ -84,6 +92,10 @@ Change the context, capability, or task size. Rerunning the same prompt is not a
 Each pass must shrink the failure set. Set a pass limit up front; when you hit it, stop and report.
 
 ## Parallel work
+
+### Fresh base
+
+Fetch the default branch and base each worktree on the remote copy. A stale local `main` makes every delegate's work need a rebase.
 
 ### Worktrees delay collisions
 

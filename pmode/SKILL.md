@@ -15,7 +15,8 @@ Match the task to one playbook, then run the playbook's skills in order.
 1. If the user linked an issue, ticket, or PR, read it first, including comments.
 2. Pick one playbook before the first tool call, even when the user listed the steps or named skills. Say it in one line: "Playbook: bug fix, because the export throws on empty input." Small change no playbook fits: `Playbook: none`, then the steps.
 3. Copy the playbook's steps into the todo list, verbatim.
-4. Before each step, offer it and wait for the user's go-ahead, then run it with its skill. A skipped step stays in the list as `skip: <reason>`. Offer the playbook's next step instead of the one in a skill's "Next" section.
+4. Work that will be pushed: rename the branch now per [`commit-rules`](../commit-rules/SKILL.md#branch-naming-conventions), not at the first push.
+5. Before each step, offer it and wait for the user's go-ahead, then run it with its skill. A skipped step stays in the list as `skip: <reason>`. Offer the playbook's next step instead of the one in a skill's "Next" section.
 
 ## Load each step's skill
 

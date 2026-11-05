@@ -1,6 +1,6 @@
 ---
 name: verify-with-proof
-description: Use after implementing, before claiming work is done, fixed, or passing, and when asked to "verify", "prove it works", or "did this fix it".
+description: Use after implementing, before claiming work is done, fixed, or passing, before stating a root cause or review finding as fact, and when asked to "verify", "prove it works", or "did this fix it".
 metadata:
   inspiration:
     - https://github.com/cursor/plugins/tree/main/pstack/skills/principle-prove-it-works

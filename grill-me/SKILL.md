@@ -10,7 +10,9 @@ metadata:
 
 Interview the user until you share an understanding. Map the work as a **design tree**: every decision branches into the decisions that hang off it.
 
-Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask now without guessing. Ask the whole frontier in one round. Number each question and give your recommended answer. Then wait.
+Before the first round, explain in plain words, at most 5 lines: the problem, the solution you'd pick, its cost, and the main trade-off. A user who doesn't understand the problem accepts every recommendation.
+
+Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask now without guessing. Ask at most 4 frontier questions per round, the most consequential first; the rest wait for the next round. Number each question and give your recommended answer. Then wait.
 
 ```
 **Q1. <title>:** <body, including choices if useful>

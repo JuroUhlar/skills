@@ -18,7 +18,9 @@ If the work has a ticket (in the branch name, like `INTER-1234-feat-...`, or in 
 
 ## Limits
 
-- Never run `gh pr ready`, `gh pr merge`, or `gh pr merge --auto`, and don't force-push or edit CI workflows to force a green result. The PR stays a draft for the user.
+- Never run `gh pr ready`, `gh pr merge`, or `gh pr merge --auto`, and don't force-push or edit CI workflows to force a green result. The PR stays a draft for the user, unless the user said in this session to merge once it's green.
+- At most 3 Copilot review rounds. After the third, stop and list the open comments instead of fixing them.
+- A notification or check-in that changes nothing gets one line or no reply. Ask a pending question once; don't repeat it on every check-in.
 - Stop and report when a failure is outside this PR, or when a comment needs a product call.
 
 ## Loop

@@ -12,6 +12,7 @@ metadata:
 
 * Maximize clarity and brevity.
 * Describe the end state. Don't narrate how you got there or what didn't work.
+* Messages others will read (Slack replies, PR comments): lead with the answer, at most 3 sentences unless asked for more.
 * No paragraph over 3 lines; turn longer ones into lists or other structured text.
 * Use the plain word, or explain a term of art the reader may not know.
 * When referencing something that can be a clickable link (PR, issue, user, document, repo), make it a clickable link.

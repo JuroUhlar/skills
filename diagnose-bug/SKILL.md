@@ -1,6 +1,6 @@
 ---
 name: diagnose-bug
-description: Use when the user says "diagnose" or "debug this", or reports something broken, throwing, failing, flaky, or slow whose cause isn't obvious.
+description: Use when the user says "diagnose", "debug this", or "investigate", asks why a CI run, deploy, or job failed, or reports something broken, throwing, failing, flaky, or slow whose cause isn't obvious.
 metadata:
   inspiration:
     - https://github.com/mattpocock/skills/tree/main/skills/engineering/diagnosing-bugs
