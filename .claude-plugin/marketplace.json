@@ -14,6 +14,7 @@
       "source": "./",
       "strict": false,
       "skills": [
+        "./audit-chat-history",
         "./code-comments",
         "./code-review",
         "./commit-rules",
@@ -62,6 +63,15 @@
           }
         ]
       }
+    },
+    {
+      "name": "audit-chat-history",
+      "description": "Use when the user invokes audit-chat-history or asks to audit Claude Code chat history for failure points, skill effectiveness, or prompting style.",
+      "source": "./audit-chat-history",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
     },
     {
       "name": "code-comments",
