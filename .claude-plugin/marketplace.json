@@ -182,7 +182,7 @@
     },
     {
       "name": "pmode",
-      "description": "Load this first, before any other skill (including diagnose-bug and tdd) and before reading or searching code, whenever a conversation opens with a coding task, such as an issue, ticket, bug report, pasted error, failing or flaky test, a feature the user wants (\"I want to add X\"), or a request to build, add, change, fix, or refactor something. Skip for questions and trivial edits (typo, config value, dependency bump). Also when the user invokes pmode.",
+      "description": "Load this first, before any other skill (including diagnose-bug and tdd) and before reading or searching code, whenever a conversation opens with a coding task, such as an issue, ticket, bug report, pasted error, failing CI run, failing or flaky test, a PR to review, a feature the user wants (\"I want to add X\"), or a request to build, add, change, fix, or refactor something. Skip for questions and trivial edits (typo, config value, dependency bump). Also when the user invokes pmode.",
       "source": "./pmode",
       "strict": false,
       "skills": [

@@ -42,7 +42,7 @@ Fixed in 879dfc3. Declared it as `const` so the snippet is safe under strict mod
 
 ### Resolve only what you fixed
 
-Leave skipped or disputed threads open. Bots: say why in the reply. Humans: tell the user.
+Leave skipped or disputed threads open. Bots: say why in the reply. Humans: tell the user. A reply explaining why nothing changed is not a fix; the thread stays open.
 
 ## Stage review comments
 
@@ -59,3 +59,6 @@ Create comments in a pending review. Never submit (omit `event`). The user posts
 - `POST .../reviews/{id}/comments` → 404.
 - `POST .../pulls/{n}/comments` opens a second pending review → 422.
 - Files outside the diff can't be commented. Attach to a related changed file and say so.
+- A review body set through the API is dropped when the user submits. Give the body in chat as fenced markdown for the user to paste.
+- Deleting the last pending comment deletes the whole pending review.
+- Once the user has seen the staged review, change it only when asked.

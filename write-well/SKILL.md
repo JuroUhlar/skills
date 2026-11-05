@@ -10,8 +10,10 @@ metadata:
 
 ## Preferences
 
-* Maximize clarity, brevity, semantic density.
-* No walls of text, turn long paragraphs into lists or other structured text.
+* Maximize clarity and brevity.
+* Describe the end state. Don't narrate how you got there or what didn't work.
+* No paragraph over 3 lines; turn longer ones into lists or other structured text.
+* Use the plain word, or explain a term of art the reader may not know.
 * When referencing something that can be a clickable link (PR, issue, user, document, repo), make it a clickable link.
 * Link to the section, not just the document (`doc.md#anchor`).
 

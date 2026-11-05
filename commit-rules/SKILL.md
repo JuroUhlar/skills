@@ -14,6 +14,9 @@ metadata:
 
 At the first commit point in a session, ask once: "Commit automatically for the rest of this session?" Remember the answer. Without an answer, don't commit, leave local changes to be inspected by the user.
 
+- Ask before the first commit, never after it.
+- Skip the question when the user already asked you to commit, push, or open a PR.
+
 ## Branch naming conventions
 
 * If the work has a ticket ID, use it as prefix.
@@ -25,6 +28,10 @@ At the first commit point in a session, ask once: "Commit automatically for the 
 ## Install the repo's commit hooks
 
 Before the first commit, look for hook config (`.husky/`, `lefthook.yml`, `.pre-commit-config.yaml`). If hooks are configured but not active (check `git config core.hooksPath` and `.git/hooks/`), ask the user before installing them.
+
+## Stage only your changes
+
+Run `git status` before staging. Stage explicit paths, never `git add -A` or `git add .`. Leave changes you didn't make; the user or another session may own them.
 
 ## Message conventions
 
@@ -41,7 +48,7 @@ GOOD: Refresh tokens before expiry instead of on 401.
 
 ## Keep the PR description current
 
-After pushing to a branch with an open PR, check whether the description still matches the commits. If not, update it.
+Part of every push, not a follow-up. After pushing to a branch with an open PR, compare `gh pr view --json body` with `git log <base>..HEAD`. If they disagree, update the body with [`visual-pr-description`](../visual-pr-description/SKILL.md).
 
 ## Sequence commits as an argument
 
@@ -66,7 +73,7 @@ Don't resolve with `--ours`/`--theirs` or by deleting the less familiar block.
 
 ## A refusal is information
 
-When git or a hook refuses, find out why. Never route around it (`--force`, `-D`, `--no-verify`, `reset --hard`) unless the user asks for that specific action.
+When git or a hook refuses, find out why. Never route around it (`--force`, `-D`, `--no-verify`, `reset --hard`) unless the user asks for that specific action. This includes debug and throwaway commits.
 
 - Rejected push: the remote moved. Fetch and look at what landed.
 - Refused worktree or branch removal: files or commits exist nowhere else. Show the user what's at stake.

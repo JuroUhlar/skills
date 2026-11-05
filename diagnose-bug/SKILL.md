@@ -65,6 +65,7 @@ Reading code to build a theory before this exists is the failure this skill prev
 ## 3. Hypothesize
 
 - Write 3–5 ranked hypotheses before testing any. One hypothesis anchors.
+- Read the real source of code you suspect, including dependencies: a local checkout if one exists, else the installed package, not a minified bundle.
 - Each states a prediction: "If X is the cause, changing Y makes it disappear." No prediction, discard it.
 - Show the list to the user. They often re-rank instantly. Don't block if they're away.
 

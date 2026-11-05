@@ -22,7 +22,7 @@ The user is whoever consumes the work: end user, the colleague importing your AP
 
 ### Call out wrong assumptions
 
-If you think the request or goal is based on incorrect assumptions (even if implied), call it out before building.
+If you think the request or goal is based on incorrect assumptions (even if implied), stop and say so before building: propose the alternative and wait. Building it anyway with a caveat attached doesn't count.
 
 ### Default to simplicity
 
@@ -38,6 +38,8 @@ Most result for least code.
 - Prefer native platform behavior over reimplementing it; hand-rolled copies miss edge cases.
 - Don't build something "just in case" or "for the future".
   - Exception: If future is certain or the future-proof alternative is the same cost.
+- Fix only failures you can show happen. A failure you can reproduce only by faking it is a hypothesis: report it, don't fix it unasked.
+- Before adding a guard, check, or helper, find a precedent for it in the repo. None → justify it or leave it out.
 
 ### Subtract before you add
 

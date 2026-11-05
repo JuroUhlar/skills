@@ -22,7 +22,9 @@ Recommended: <your answer>
 Recommended: <your answer>
 ```
 
-Word each question so "yes" accepts your recommended answer.
+Word each question so "yes" accepts your recommended answer. 
+
+One decision per question. Anything the user didn't ask for gets its own question, never folded into another.
 
 Each round reshapes the tree. Settled decisions push the frontier out. A question that depends on another still open in this round belongs to a later round.
 

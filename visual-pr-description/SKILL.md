@@ -18,6 +18,7 @@ Create or update the pull request for the current task with a concise descriptio
 2. Find the pull request:
    - Check the current branch for a PR with `gh pr view --json url,number,title,state,baseRefName,headRefName 2>/dev/null`.
    - If no PR exists and you are about to create one (for example in [`stage-pr`](../stage-pr/SKILL.md)), write the body now and pass it to the create call.
+   - Asked to explain or preview a PR: print the description in chat. Publish only when asked to create or update the PR body.
    - If no PR exists otherwise, stop and offer to open one with [`stage-pr`](../stage-pr/SKILL.md). Don't commit, push, or create a PR from this skill; committing follows [`commit-rules`](../commit-rules/SKILL.md).
 
 3. If necessary, gather only the context needed to explain the change:
@@ -27,9 +28,11 @@ Create or update the pull request for the current task with a concise descriptio
    - Read [`show-me`](../show-me/SKILL.md) for the visual-outline conventions used in the PR body.
 
 4. Write the PR description using the template:
+   - Ceremony matches scope - tiny change gets a minimal description.
+   - Describe the branch's end state. Don't narrate earlier attempts, review rounds, or what didn't work.
    - Keep **Why** to exactly one sentence.
    - Keep **Things to note** to 1-3 bullets. Prioritize reviewer warnings, migrations, compatibility constraints, deliberate omissions, or surprising decisions. Write `- None.` when there are no special considerations.
-   - Fill **Verification** with the evidence from [`verify-with-proof`](../verify-with-proof/SKILL.md#report). Omit it when nothing could be run.
+   - Fill **Verification** with the evidence from [`verify-with-proof`](../verify-with-proof/SKILL.md#report), at most 3 lines: what ran and the result, no raw output. Omit it when nothing could be run.
    - Make **Change outline** a compact, `/show-me`-inspired structural view rather than prose or a file-by-file changelog.
    - Include only the views that help explain this PR:
      - SQL table and endpoint contract changes, plus pseudocode for business logic.
@@ -42,6 +45,7 @@ Create or update the pull request for the current task with a concise descriptio
    - Use a Markdown table for a list of items with several attributes each, such as dependency bumps (package, from, to, why).
    - Keep code block lines under ~80 characters. Longer lines scroll sideways and hide the end.
    - Keep each view focused on what a reviewer needs. Omit categories that did not change.
+   - Never just duplicate a part of the diff in the PR body.
    - Optional: if you know a ticket id/url, related plan/document urls, or other relevant links, put them in **Context**; otherwise omit **Context**.
 
 5. Save and publish the description:
@@ -50,6 +54,6 @@ Create or update the pull request for the current task with a concise descriptio
 
 6. Report completion with a short summary and link to the PR.
 
-Always read and follow [references/pr_description_template.md](references/pr_description_template.md). Do not expand the PR body beyond that template.
+Always read and follow [references/pr_description_template.md](references/pr_description_template.md). Do not expand the PR body beyond that template. When updating, rewrite to the template rather than appending, but keep sections the author wrote (notes, screenshots, links). Say so if you remove any.
 
 Write as one human talking to another: avoid jargon and slang, and use simple, coherent, concise language.

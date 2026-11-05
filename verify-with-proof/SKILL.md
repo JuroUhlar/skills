@@ -21,6 +21,10 @@ State what done means as checks you can run, not a mood: command, observable, ex
 
 The check must be **red-capable**: it asserts the exact symptom, so it fails on the old behavior and passes on the new. "Runs without erroring" is not a check. Expected values come from an independent source (spec, known-good literal), never recomputed the way the code does it.
 
+The user stated a gate (a command, an expected output, "must be empty")? Run exactly that and quote its raw output. Anything other than the expected result is a failure: stop and report it, don't reinterpret it as "effectively clean".
+
+Size the check to the risk. For many similar targets (pages, endpoints, files), sample and say how many and how you chose them. Ask before a check that will take more than ~10 minutes.
+
 No check possible (needs prod access, human clicks)? Say so, list what you tried, ask. Don't substitute a proxy.
 
 ## Prove it against the real thing

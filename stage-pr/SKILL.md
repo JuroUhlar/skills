@@ -14,6 +14,11 @@ Open a PR in a draft state, with its body written by [`visual-pr-description`](.
 * [`visual-pr-description`](../visual-pr-description/SKILL.md)
 * [`pr-comments`](../pr-comments/SKILL.md)
 
+## Limits
+
+- Never run `gh pr ready`, `gh pr merge`, or `gh pr merge --auto`, and don't force-push or edit CI workflows to force a green result. The PR stays a draft for the user.
+- Stop and report when a failure is outside this PR, or when a comment needs a product call.
+
 ## Loop
 
 Refresh state every pass with `gh pr view` and `gh pr checks` (`--watch`). 
@@ -46,9 +51,3 @@ gh api graphql -f id="$(gh pr view {n} --json id -q .id)" -f query='mutation($id
 ```
 
 When done, report the PR URL after a fresh read shows green CI and a Copilot approval of the current head.
-
-## Limits
-
-- Do not mark the draft ready, merge, enable auto-merge, force-push, or edit CI workflows to force a green result.
-- Stop and report when a failure is outside this PR, or when a comment needs a product call.
-

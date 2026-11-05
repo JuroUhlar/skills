@@ -1,6 +1,6 @@
 ---
 name: pmode
-description: Load this first, before any other skill (including diagnose-bug and tdd) and before reading or searching code, whenever a conversation opens with a coding task, such as an issue, ticket, bug report, pasted error, failing or flaky test, a feature the user wants ("I want to add X"), or a request to build, add, change, fix, or refactor something. Skip for questions and trivial edits (typo, config value, dependency bump). Also when the user invokes pmode.
+description: Load this first, before any other skill (including diagnose-bug and tdd) and before reading or searching code, whenever a conversation opens with a coding task, such as an issue, ticket, bug report, pasted error, failing CI run, failing or flaky test, a PR to review, a feature the user wants ("I want to add X"), or a request to build, add, change, fix, or refactor something. Skip for questions and trivial edits (typo, config value, dependency bump). Also when the user invokes pmode.
 metadata:
   inspiration:
     - https://github.com/cursor/plugins/tree/main/pstack/skills/poteto-mode
@@ -13,7 +13,7 @@ Match the task to one playbook, then run the playbook's skills in order.
 ## Start
 
 1. If the user linked an issue, ticket, or PR, read it first, including comments.
-2. Pick one playbook. Say it in one line: "Playbook: bug fix, because the export throws on empty input."
+2. Pick one playbook before the first tool call, even when the user listed the steps or named skills. Say it in one line: "Playbook: bug fix, because the export throws on empty input." Small change no playbook fits: `Playbook: none`, then the steps.
 3. Copy the playbook's steps into the todo list, verbatim.
 4. Before each step, offer it and wait for the user's go-ahead, then run it with its skill. A skipped step stays in the list as `skip: <reason>`. Offer the playbook's next step instead of the one in a skill's "Next" section.
 
@@ -43,6 +43,13 @@ New or changed behavior that needs decisions: unclear requirements, a new interf
 5. [`verify-with-proof`](../verify-with-proof/SKILL.md) against each behavior in the spec.
 6. [`code-review`](../code-review/SKILL.md) of your own diff.
 7. [`commit-rules`](../commit-rules/SKILL.md).
+
+### PR review
+
+Review someone else's pull request.
+
+1. [`code-review`](../code-review/SKILL.md).
+2. [`pr-comments`](../pr-comments/SKILL.md) to stage the findings the user picks. Never post.
 
 ### Gardening
 

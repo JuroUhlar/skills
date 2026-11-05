@@ -18,7 +18,8 @@ Find the highest-leverage defects in a change. Signal over volume: few high-conf
 2. **Intent**, one paragraph, from the first source found: user-supplied → PR description / linked issue → spec under `docs/`, `specs/`, `.scratch/` → commit messages (weak; say so). Nothing found: ask once; user says none → skip the Spec axis. Judge execution of the goal; don't question the goal.
 3. **Standards sources:** repo docs on how to write code (`STANDARDS.md`, `CONTRIBUTING.md` and its design constraints and product decisions, `AGENTS.md`, rules). They override the smell baseline.
 4. **Risk surfaces:** auth, secrets/crypto, payments, input validation, concurrency, DB writes/migrations, caching, public API contracts, perf-critical paths. Higher risk = stricter evidence bar.
-5. **Declare the mode** before reading the diff, one line the user can correct: `Mode: sub-agents | single sub-agent | direct (<reason>); Risk: <surfaces>`.
+5. **Prior discussion** (PRs): read existing reviews and threads (`gh pr view --comments`, `gh api repos/<o>/<r>/pulls/<n>/comments`). Drop findings the author already answered unless you have new evidence.
+6. **Declare the mode** before reading the diff, sized from `git diff --stat`, one line the user can correct: `Mode: sub-agents | single sub-agent | direct (<reason>); Risk: <surfaces>`.
 
 ## Run
 
@@ -38,6 +39,7 @@ PRs: don't run the suite or lint unless asked; assume CI passes. Targeted repros
 
 ## Finding quality
 
+- Lead with the impact in one sentence; keep each finding under ~4 lines.
 - Each finding: location, what breaks, why it matters here, **evidence** (the traced call chain or execution path, not "this could be nil").
 - Hypothetical only counts if a caller can reach it. Trace the call site; validated upstream → drop.
 - "Broken" ≠ "I'd do it differently". The latter isn't a finding without a concrete problem.
@@ -84,6 +86,8 @@ Sub-agents report suspected defects; the orchestrator attempts to demonstrate ea
 - Probe passes (bug doesn't reproduce) → drop or downgrade the finding.
 - Not attempted needs a one-line reason the probe is impossible (needs prod data, a real third-party account, new infra); mark `unproven: <reason>` and keep the traced path. "Didn't try" or "traced is enough" is not a reason.
 - A unit test with the existing mocks usually takes minutes; it's rarely impossible.
+- A service that isn't running (Docker, database, dev server) or a CLI you haven't looked for is not a reason. Read the README and start it.
+- Prove a suggested fix the same way before handing it to the author or staging it as a comment.
 - Attach the command and redacted output to the finding, so the author can re-run it.
 
 ## Severity
