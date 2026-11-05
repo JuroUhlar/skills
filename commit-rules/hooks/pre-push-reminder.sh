@@ -12,6 +12,23 @@ if [[ "$command" =~ git[[:space:]]+-C[[:space:]]+([^[:space:]]+) ]]; then
 fi
 branch=$(git -C "${dir:-.}" branch --show-current 2>/dev/null)
 
+# `git push <remote> <src>:<dst>` publishes <dst>, not the checked-out branch. Pushing to a
+# branch the remote already has publishes no new name, so there is nothing to check.
+args=$(sed -E 's/.*git([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+push//; s/(&&|\|\||;|\|).*//' <<<"$command")
+read -ra words <<<"$args"
+positional=()
+for w in "${words[@]}"; do [[ "$w" == -* ]] || positional+=("$w"); done
+for spec in "${positional[@]:1}"; do
+  dst=${spec#+}; dst=${dst##*:}; dst=${dst#refs/heads/}
+  [[ "$dst" == HEAD || -z "$dst" ]] && continue
+  # Ask the remote: shallow clones often track only the default branch.
+  if git -C "${dir:-.}" ls-remote --exit-code --heads "${positional[0]}" "$dst" >/dev/null 2>&1; then
+    branch=""
+  else
+    branch=$dst
+  fi
+done
+
 respond() {
   jq -n --arg field "$1" --arg text "$2" --arg decision "$3" \
     '{hookSpecificOutput: ({hookEventName: "PreToolUse", ($field): $text}
@@ -24,7 +41,7 @@ if [[ -n "$branch" ]] && ! git -C "$dir" rev-parse --abbrev-ref '@{upstream}' >/
   marker="${TMPDIR:-/tmp}/claude-pre-push/$(git -C "$dir" rev-parse --show-toplevel HEAD | git hash-object --stdin | cut -c1-16)"
   if [[ ! -e "$marker" ]]; then
     mkdir -p "$(dirname "$marker")" && touch "$marker"
-    respond permissionDecisionReason "First push of branch '$branch', so its name becomes public. It must describe the work: ticket ID or feat/fix/docs prefix plus meaningful words, e.g. INTER-1234-feat-add-login-flow. Never random words or harness names like claude/naughty-beaver-hf7402. If the name is bad, rename it (git branch -m <new-name>). Then run the push again; it won't be blocked a second time." deny
+    respond permissionDecisionReason "First push of branch '$branch', so its name becomes public. It must describe the work: ticket ID or feat/fix/docs prefix plus meaningful words, e.g. INTER-1234-feat-add-login-flow. Never random words or harness names like claude/naughty-beaver-hf7402. If the name is bad, rename it (git branch -m <new-name>). Then run the push again; it won't be blocked a second time. This blocked the whole command: nothing in it ran, including a git commit chained before the push." deny
     exit 0
   fi
 fi
