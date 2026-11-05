@@ -187,6 +187,17 @@ function runEvals(extraArgs: string[]): number {
     recursive: true,
     filter: (src) => !src.startsWith(join(ROOT, "evals", "results")),
   });
+  // Real sessions load setup/CLAUDE.md, and some skills only trigger through it, so give every case
+  // the same rules. A case that sets its own append_system_prompt keeps it.
+  const rules = readFileSync(join(ROOT, "setup", "CLAUDE.md"), "utf8");
+  for (const name of readdirSync(join(plugin, "evals"))) {
+    const prompt = join(plugin, "evals", name, "prompt.md");
+    if (!existsSync(prompt)) continue;
+    const text = readFileSync(prompt, "utf8");
+    if (text.startsWith("---\n") && !/^append_system_prompt:/m.test(text)) {
+      writeFileSync(prompt, `---\nappend_system_prompt: ${JSON.stringify(rules)}\n${text.slice(4)}`);
+    }
+  }
   const outputDir = join(ROOT, "evals", "results", new Date().toISOString().replaceAll(":", "-"));
   // Sonnet keeps runs cheap. Skill choice differs by model, so pass `--model opus` to confirm on Opus.
   const args = ["plugin", "eval", plugin, "--model", "sonnet", "--ablation", "none", "--runs", "1", "--max-cost-usd", "3",

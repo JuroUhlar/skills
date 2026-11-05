@@ -14,6 +14,7 @@ metadata:
 * Describe the end state. Don't narrate how you got there or what didn't work.
 * No paragraph over 3 lines; turn longer ones into lists or other structured text.
 * Use the plain word, or explain a term of art the reader may not know.
+* Give a number its meaning: compared to what, and whether that's good or bad.
 * When referencing something that can be a clickable link (PR, issue, user, document, repo), make it a clickable link.
 * Link to the section, not just the document (`doc.md#anchor`).
 

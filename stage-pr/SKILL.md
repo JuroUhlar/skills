@@ -2,7 +2,7 @@
 name: stage-pr
 description: >-
   Open a draft pull request for current work or branch. Iterate until CI is green and Copilot review approves.
-  Use when the user asks to stage a PR or make a PR reviewable or ready for review.
+  Use when the user asks to open, create, or stage a PR, or make a PR reviewable or ready for review.
 ---
 
 # Make a PR reviewable

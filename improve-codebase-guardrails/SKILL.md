@@ -18,6 +18,7 @@ Design for a contributor who sees only the files they opened, copies the nearest
 
 - Read recent commits, reverts, review comments, agent instruction files, and comments explaining workarounds.
 - Group mistakes into classes. One occurrence is enough to guard against a class; don't wait for a repeat.
+- Exception: a guard that blocks an action someone sometimes wants (a deny hook, a permission rule, a required approval) costs every legitimate use. Count both the incidents and the legitimate uses it would block; when the uses win, fix the cause in the instructions instead.
 - Read the repo's check commands (package scripts, build tool, pre-commit, CI) first. A check that is unwired, skipped, or silently broken is a finding; no lint/typecheck/test in CI is the top finding.
 
 ## Hierarchy of constraints
