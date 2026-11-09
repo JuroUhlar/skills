@@ -22,6 +22,7 @@
         "./create-verification-skill",
         "./diagnose-bug",
         "./edit-notion-page",
+        "./explain-diff",
         "./grill-me",
         "./handoff",
         "./improve-codebase-architecture",
@@ -131,6 +132,15 @@
       "name": "edit-notion-page",
       "description": "Use when creating, editing, or rewriting a Notion page through the Notion MCP (notion-update-page, update_content, replace_content).",
       "source": "./edit-notion-page",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "explain-diff",
+      "description": "Use when the user invokes explain-diff or asks for a rich, interactive explanation of a code change, diff, branch, or PR.",
+      "source": "./explain-diff",
       "strict": false,
       "skills": [
         "./"

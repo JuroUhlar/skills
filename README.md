@@ -58,6 +58,7 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 7. Human review
    1. [`visual-pr-description`](visual-pr-description/SKILL.md) ships a [PR-create hook](visual-pr-description/hooks/pr-create-reminder.sh) (Claude Code plugin only) that reminds Claude to write a new PR's body with this skill.
       * [`show-me`](show-me/SKILL.md)
+      * [`explain-diff`](explain-diff/SKILL.md) writes an interactive HTML explainer of a change, with a quiz.
    2. [`stage-pr`](stage-pr/SKILL.md)
    3. [`pr-comments`](pr-comments/SKILL.md)
 
