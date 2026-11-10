@@ -15,6 +15,7 @@
       "strict": false,
       "skills": [
         "./audit-chat-history",
+        "./claude-security-projects",
         "./code-comments",
         "./code-review",
         "./commit-rules",
@@ -69,6 +70,15 @@
       "name": "audit-chat-history",
       "description": "Use when the user invokes audit-chat-history or asks to audit Claude Code chat history for failure points, skill effectiveness, or prompting style.",
       "source": "./audit-chat-history",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "claude-security-projects",
+      "description": "Use when creating, configuring, or auditing Claude Security projects (claude.ai/security), or when the Claude Security connector can't set something you need, such as excluded folders or context-only repositories.",
+      "source": "./claude-security-projects",
       "strict": false,
       "skills": [
         "./"

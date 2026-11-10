@@ -83,6 +83,7 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 ### Security
 
 * [`security-advisory`](security-advisory/SKILL.md)
+* [`claude-security-projects`](claude-security-projects/SKILL.md) creates and configures Claude Security projects, using the internal API for what the connector can't set (excluded folders, context-only repositories). It updates itself when the API changes.
 
 ### Meta
 
