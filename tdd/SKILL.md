@@ -24,6 +24,7 @@ See [Pre-factor](../core-principles/SKILL.md#pre-factor) for when to refactor be
 
 ## The loop
 
+0. **Would this test exist without this conversation?** Writing the suite from scratch, would you write it? If it only proves this change (layout tweak, copy edit, reviewer nit), don't add it; prove the change per [`verify-with-proof`](../verify-with-proof/SKILL.md) (screenshot, script) and say so. Review feedback and small UI fixes don't start the loop by default.
 1. **Name the break.** Before writing the test: which production change should make it fail, and is that change a bug or a decision? Can't name one → redesign the test around an observable behavior.
 2. **Red.** One test, one behavior, real code. Run it. It must *fail* (not error) for the expected reason: feature missing, not a typo or bad import. Passes immediately → it tests existing behavior; fix the test. Bug fix: the failure must show the reported symptom.
 3. **Green.** Minimum code to pass. No speculative options or features.
@@ -44,6 +45,7 @@ Don't force one when the path is unclear or costly: broad harness setup, brittle
 - **Vacuous**: would still pass if every imported function returned `undefined`. Loose assertions (`toBeDefined`, `toBeTruthy`, `not.toThrow`, `toBeGreaterThan(0)`), call-only checks (`toHaveBeenCalled`), assertions on data the test built itself. Fix: call the subject with one concrete input, assert the literal output or effect. For an absence, also assert the presence on another input.
 - **Change detector**: only an intentional decision can fail it (constant's value, message wording, private structure). Test the behavior that depends on the decision: not `MAX_RETRIES === 5` but "a failing call is retried 5 times; a 6th never happens".
 - **Testing the framework**: assert the contract your code makes at its boundary, not upstream mechanics.
+- **Conversation-fitted**: proves only the current change, not a behavior the suite needs. Tell: the test name restates the task or review comment, not something users or callers rely on.
 - **Horizontal slicing**: all tests first, then all code. Tests verify imagined behavior and go insensitive to real change.
 
 See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking rules.
