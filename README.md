@@ -73,6 +73,7 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 
 * [`write-well`](write-well/SKILL.md)
 * [`code-comments`](code-comments/SKILL.md)
+* [`typescript-best-practices`](typescript-best-practices/SKILL.md)
 * [`commit-rules`](commit-rules/SKILL.md) ships a [pre-push hook](commit-rules/hooks/pre-push-reminder.sh) (Claude Code plugin only). It blocks a branch's first push once so Claude checks the branch name, then reminds Claude to update the open PR's description.
 * [`orchestrator`](orchestrator/SKILL.md)
 

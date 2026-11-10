@@ -38,6 +38,7 @@
         "./tdd",
         "./to-spec",
         "./to-tickets",
+        "./typescript-best-practices",
         "./verify-with-proof",
         "./visual-pr-description",
         "./write-agent-skill",
@@ -277,6 +278,15 @@
       "name": "to-tickets",
       "description": "Use when the user invokes to-tickets or asks to break a spec or plan into tickets.",
       "source": "./to-tickets",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "typescript-best-practices",
+      "description": "Use when writing, editing, or reviewing TypeScript (.ts, .tsx) code.",
+      "source": "./typescript-best-practices",
       "strict": false,
       "skills": [
         "./"
