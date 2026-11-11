@@ -44,6 +44,7 @@ Don't force one when the path is unclear or costly: broad harness setup, brittle
 - **Vacuous**: would still pass if every imported function returned `undefined`. Loose assertions (`toBeDefined`, `toBeTruthy`, `not.toThrow`, `toBeGreaterThan(0)`), call-only checks (`toHaveBeenCalled`), assertions on data the test built itself. Fix: call the subject with one concrete input, assert the literal output or effect. For an absence, also assert the presence on another input.
 - **Change detector**: only an intentional decision can fail it (constant's value, message wording, private structure). Test the behavior that depends on the decision: not `MAX_RETRIES === 5` but "a failing call is retried 5 times; a 6th never happens".
 - **Testing the framework**: assert the contract your code makes at its boundary, not upstream mechanics.
+- **Conversation-fitted**: proves only the current change, not a behavior the suite needs. Tell: the test name restates the task, bug, or review comment, not something users or callers rely on. It tests one specific scenario that happened to be reported, not something you would write when building the test suite from scratch.
 - **Horizontal slicing**: all tests first, then all code. Tests verify imagined behavior and go insensitive to real change.
 
 See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking rules.
