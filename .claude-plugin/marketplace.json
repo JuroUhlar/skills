@@ -34,6 +34,7 @@
         "./pr-comments",
         "./security-advisory",
         "./show-me",
+        "./snyk-api",
         "./stage-pr",
         "./tdd",
         "./to-spec",
@@ -242,6 +243,15 @@
       "name": "show-me",
       "description": "Use when the user invokes show-me or asks to see the current topic as a diagram, code-shape sketch, or visual explanation.",
       "source": "./show-me",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "snyk-api",
+      "description": "Use when asked about Snyk data, such as vulnerabilities, issues, projects, orgs, or what the Snyk dashboard shows for a repo or package.",
+      "source": "./snyk-api",
       "strict": false,
       "skills": [
         "./"
