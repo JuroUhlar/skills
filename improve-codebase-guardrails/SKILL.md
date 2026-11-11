@@ -44,6 +44,7 @@ Fix each class at the highest level that works. Drop a level only after saying w
   - BAD: `no-restricted-syntax: toFixed is not allowed`
   - GOOD: `Use money.format() from src/money.ts; toFixed rounds incorrectly for currency`
 - Import-boundary rules between modules and layers belong here when the language can't hide internals.
+- GitHub Actions workflows: run [zizmor](https://github.com/zizmorcore/zizmor) in CI. It flags unpinned actions, missing `permissions:`, checkout credentials left on disk, and template injection in every workflow. An AI security scan reports examples, not every occurrence.
 
 ### 4. Test: the mistake fails a test
 
