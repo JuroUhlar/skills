@@ -5,12 +5,12 @@ description: Use when creating, configuring, or auditing Claude Security project
 
 # Claude Security projects
 
-Last verified: 2026-11-10. Keep this date current; see [Keep this skill current](#keep-this-skill-current).
+Last verified: 2026-11-11. Keep this date current; see [Keep this skill current](#keep-this-skill-current).
 
 ## Pick the tool
 
 - **The Claude Security connector** (MCP tools like `list_projects`, `get_project`, `list_findings`, `save_document`, `send_project_message`): use it for everything it covers. It's a supported API.
-- **The internal API**: use it only for what the connector can't do. When last checked, the connector's create call took scoped folders only, so it couldn't set excluded folders or context-only repositories, and it couldn't change a project's repositories after creation.
+- **The internal API**: use it only for what the connector can't do. When last checked, the connector's create call took scoped folders only, so it couldn't set excluded folders or context-only repositories, it couldn't change a project's repositories after creation, and it couldn't read or change sharing (`get_project` has no members; `update_project` only sets the name and hidden severities).
 - **The UI**: use it when neither works, or for settings the user should decide themselves.
 
 ## Call the internal API
@@ -26,6 +26,13 @@ Last verified: 2026-11-10. Keep this date current; see [Keep this skill current]
 | `CreateProject` | `{name, assets: [Asset]}` | Returns the project with assets. Notes aren't part of it; see [Notes](#notes). |
 | `GetProject` | `{project_id}` | Full config: assets, status, scan settings. |
 | `ListProjects` | not inspected | Use the connector's `list_projects` instead. |
+| `UpdateProjectAsset` | `{project_id, asset_id, params: {settings: {exclude_paths?, base_paths?, branch?}, update_mask: "excludePaths,basePaths,branch"}}` | Changes one existing repo entry in place. List only the fields you send in `update_mask` (camelCase), comma-separated. Returns the updated asset. `asset_id` (`asst_...`) comes from `GetProject` or the connector's `get_project`. |
+| `ListProjectMembers` | `{project_id}` | Returns `{members: [{account_uuid, full_name, email, is_owner, added_at, added_by_name, role}]}`. The owner has `is_owner: true` and no role. |
+| `AddProjectMember` | `{project_id, account_uuid, role}` | `role` is `full` (UI: Full), `view_triage` (UI: Triage) or, by UI label only, View only (value not captured). One call per person. Returns `{member: {...}}`. Get `account_uuid` from `ListProjectMembers` on a project that already has the person. |
+
+`GetProject` also returns `sharing: {visibility, is_shared, viewer_capabilities, is_owner}`. `visibility: "private"` is the UI's "Only people invited". To copy sharing between projects, read the source with `ListProjectMembers` and call `AddProjectMember` for each missing member, then read the target back.
+
+Severity of a finding can't be set by any method, in the UI, or by the project agent (it says its tools only resolve or reopen). The severity badge only shows a tooltip. A finding page's chat offers "Why is this <severity>?" and "Tell Claude why this is wrong" chips, which send a chat message; the agent can then update the threat model, which later scans use for rating. To act on a finding now, use Triage → Dismiss as (False positive / Accepted risk / Duplicate / Other).
 
 Seen in network traffic but not tried: `ListFindings`, `ListProjectMemories`, `GetProjectBriefing`, `ListProposedAssetChanges`, `ListProjectAgentMessages`. Before using an unlisted method, capture it as in [Capture an unknown call](#capture-an-unknown-call).
 
@@ -86,7 +93,7 @@ Use this to learn a method or payload the UI sends, without changing anything:
 ## Ask before
 
 - Moving legacy projects to continuous scanning. The UI says this can't be undone.
-- Archiving a project, or changing sharing or members.
+- Archiving a project, or changing sharing or members, unless the user named who gets which access or which project to copy it from.
 - Sending a project message. Each one starts a billed agent turn.
 
 ## Gotchas
