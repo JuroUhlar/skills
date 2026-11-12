@@ -27,7 +27,7 @@ description: Use when asked about Snyk data, such as vulnerabilities, issues, pr
 
 - Org paths need the org UUID, not the slug. Map slug → ID with `/rest/orgs`.
 - Error 400 "must be at least 10" → raise `limit`. `/issues` rejects `limit` below 10. Max is 100.
-- Encode reserved characters in query values: `names=org%2Frepo`, not `names=org/repo`.
+- Encode reserved characters in query values, including commas in lists: `names=org%2Frepo`, `types=pip%2Cpoetry`. Some endpoints (`/projects`) reject them unencoded with a 400.
 - Project names look like `<owner>/<repo>:<manifest path>`; one repo has one project per manifest. Find a repo's projects with `names_start_with=<owner>%2F<repo>`.
 - `/rest/orgs/<org_id>/issues` filters:
   - `status=open`, `effective_severity_level=critical,high`, `type=package_vulnerability|code|license|cloud|custom`.
