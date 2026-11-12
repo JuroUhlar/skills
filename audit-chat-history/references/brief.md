@@ -4,10 +4,10 @@ Goal: find where sessions went wrong, which skills helped, which were skipped or
 
 ## Input
 
-Each file in `{BATCH_FILE}` is one condensed session. Header: project | session id | start | title | cost | user messages | interrupts.
+Each file in `{BATCH_FILE}` is one condensed session. Header: project | session id | start | title | model | turns | cost | user messages | interrupts.
 
 - `USER:` the user's message. `USER: [INTERRUPTED]` means the user stopped the agent.
-- `ASSISTANT:` agent text. `>> SKILL x` a skill load. `>> AGENT` a sub-agent. `>> Bash:` and other tool calls. `TOOL_ERR` a failed tool call.
+- `ASSISTANT:` agent text. `>> SKILL x` a skill load. `>> AGENT` a sub-agent call; `SUBAGENT` lines at the end list each run's agent type, model, size, and job. `>> Bash:` and other tool calls. `TOOL_ERR` a failed tool call.
 - Tool output is stripped. When the cause of a correction is unclear, grep the raw transcript (`ls ~/.claude/projects/*/<session-id>.jsonl`). Don't print whole raw files; they're large.
 - Redact tokens and passwords (`<REDACTED>`) in anything you write.
 
@@ -19,6 +19,7 @@ Append to `{FINDINGS_FILE}` after each session, not at the end, so findings surv
 ### <file name>
 - task: bug fix | feature | PR review | PR comments | docs | ops | research | skill authoring | chat
 - skills loaded: name (model or user)
+- model mismatches: run, model, job, and why it's mismatched (judgment work on a weak model, mechanical work on a strong one, a long session that should have been split or delegated)
 - skills that fit but weren't loaded: name, why it fit
 - skill loaded but rule not followed: name, quoted rule, what happened
 - user corrections: short verbatim quote [wrong-scope | didnt-verify | ignored-instruction | ignored-skill-rule | over-engineered | bad-prose | assumed | git/PR | tooling | slow/expensive | other]
