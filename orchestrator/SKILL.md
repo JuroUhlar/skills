@@ -77,6 +77,8 @@ Widen scope only for a named risk. "Check everything" gets taken literally and b
 
 Send only deterministic or cheaply verifiable work to cheaper models or scripts. Design, review, and diagnosis stay on the strong model.
 
+Pick the subagent type by job: `thinker` (Opus) for review, diagnosis, plans, and deciding how to address review comments; `fixer` (Sonnet) for changes a brief already specifies, staging PRs, and CI babysitting; `clerk` (Haiku) for mechanical text and data work; `Explore` (Haiku) for read-only code search. Use `general-purpose` only when none fits.
+
 ### Build the lever
 
 For repetitive edits, write a script or codemod instead of hand-editing or fanning out N agents.

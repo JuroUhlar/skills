@@ -97,6 +97,10 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 * [`edit-notion-page`](edit-notion-page/SKILL.md)
 * [`audit-chat-history`](audit-chat-history/SKILL.md) reviews Claude Code transcripts for failure points and skills that don't load or don't work. Rerun it monthly to see whether fixes landed.
 
+## Subagents
+
+[`agents/`](agents/README.md) defines subagent roles with a model tier each: `thinker` (strong), `fixer` (mid), `clerk` (cheap), and a read-only `Explore` (cheap). `setup/install.sh` writes them for Claude Code and Codex.
+
 ## Evals
 
 [`evals/`](evals) checks which skill loads for typical opening prompts. Each run is a real model call on your account (about $0.12 per case). To run it against the working tree:

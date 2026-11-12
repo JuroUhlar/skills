@@ -4,6 +4,7 @@
 
 - Registers the skills' hooks in `settings.json`. Hooks in skill folders only load through the plugin.
 - Imports [`setup/CLAUDE.md`](setup/CLAUDE.md) into the user `CLAUDE.md`. These are rules that skill descriptions alone don't trigger.
+- Writes the subagent roles in [`agents/`](agents/README.md) to `~/.claude/agents`, and to `~/.codex/agents` if Codex is installed.
 - Disables claude.ai-synced plugins (`<name>@synced`) that duplicate a skill here.
 
 ## Local
