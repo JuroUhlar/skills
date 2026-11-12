@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Wires this repo into Claude Code for installs that copy or symlink skill folders instead of
-# installing the plugin: registers the skills' hooks, imports the global instructions, and
+# installing the plugin: registers the skills' hooks, imports the global instructions,
 # writes the subagent roles in agents/, and disables claude.ai-synced copies of these skills.
 # Idempotent; rerun after pulling.
 set -euo pipefail
