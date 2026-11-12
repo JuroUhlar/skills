@@ -35,5 +35,6 @@ description: Use when asked about Snyk data, such as vulnerabilities, issues, pr
 - Issues carry no project name. Join through `relationships.scan_item.data.id` to `/rest/orgs/<org_id>/projects/<id>`. Fetch projects once, not one call per issue.
 - Package and version live in `attributes.coordinates[].representations[].dependency`; CVE in `attributes.problems[]`; fixed versions in `coordinates[].remedies[].meta.data.fixed_in`.
 - Dashboard link for a project: `https://app.snyk.io/org/<org_slug>/project/<project_id>` (swap host for other regions).
+- A pip project shows old versions or misses packages from its manifest → Snyk resolved it with the org's Python version, not the app's. Git-imported pip projects resolve against the org setting (Settings → Languages → Python; default "Python 3.7"). Packages with no release for that version drop out of the graph silently. Compare with the project's `/v1/org/<org_id>/project/<id>/dep-graph`. The public API doesn't expose the setting; the web UI reads it from `/registry/org/<org_slug>/manage/languages/python`.
 - `/v1/...` endpoints still work through the script, but most v1 listing endpoints are POST. Prefer REST.
 - Counting across many pages: `--all` with `'.data|length'`, then sum. Big orgs have thousands of projects; filter server-side first.
