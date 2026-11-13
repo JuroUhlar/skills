@@ -17,7 +17,7 @@ Last verified: 2026-11-11. Keep this date current; see [Keep this skill current]
 
 - Requests are [Connect RPC](https://connectrpc.com/docs/protocol/) with JSON bodies, not REST:
   `POST https://claude.ai/claudeai-rpc/anthropic.claudesecurity.api.v1alpha.ClaudeSecurityService/<Method>`
-- Authentication is the user's browser session. Run `fetch` with a relative URL inside a logged-in claude.ai tab, through a browser automation tool that can evaluate JavaScript in the page. Never copy cookies or session keys out of the browser, and never print request headers that include them.
+- Authentication is the user's browser session. Run `fetch` with a relative URL inside a logged-in claude.ai tab, through a browser automation tool that drives the user's own browser and can evaluate JavaScript in the page. Prefer working in the user's existing claude.ai tab over logging in to a fresh one. Never copy cookies or session keys out of the browser, and never print request headers that include them.
 - Send `content-type: application/json` and `x-organization-uuid: <org uuid>`. The org UUID appears in the page's own request URLs (`/api/organizations/<uuid>/...`).
 - `v1alpha` means it can change without notice. Read the response of every write and compare it with what you sent.
 
