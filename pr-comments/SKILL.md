@@ -20,7 +20,7 @@ Write as the user.
 ### Who (not) to reply to
 
 - Bots (Copilot etc.): reply and resolve freely.
-- Humans: never reply or resolve unless the user says so in this conversation. Fix the code, draft a reply in conversation, leave posting to them.
+- Humans: never reply, resolve, or react unless the user says so in this conversation, even when asked to "implement" their comments. Fix the code, list which commit addresses which comment (or draft replies) in conversation, leave posting to them.
 
 ### Reply body
 

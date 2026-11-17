@@ -19,6 +19,7 @@ If the work has a ticket (in the branch name, like `INTER-1234-feat-...`, or in 
 ## Limits
 
 - Never run `gh pr ready`, `gh pr merge`, or `gh pr merge --auto`, and don't force-push or edit CI workflows to force a green result. The PR stays a draft for the user, unless the user said in this session to merge once it's green.
+- Reply to and resolve only Copilot (bot) review comments. Never reply to, resolve, or react to a human reviewer's comments unless the user asked in this session, even when asked to "implement" or "address" them. Fix the code, then tell the user in chat which commit addresses which comment, or offer drafted replies (see [`pr-comments`](../pr-comments/SKILL.md#who-not-to-reply-to)).
 - At most 3 Copilot review rounds. After the third, stop and list the open comments instead of fixing them.
 - A notification or check-in that changes nothing gets one line or no reply. Ask a pending question once; don't repeat it on every check-in.
 - Stop and report when a failure is outside this PR, or when a comment needs a product call.
@@ -39,7 +40,7 @@ For every failure or review finding
 Stop when both are true on the current head:
 
 - CI is green.
-- The latest Copilot review is on the current head SHA, and every comment is fixed or declined with a reply.
+- The latest Copilot review is on the current head SHA, and every Copilot comment is fixed or declined with a reply. Human comments don't count toward this; they are the user's to answer.
 
 ## Request a Copilot review
 
