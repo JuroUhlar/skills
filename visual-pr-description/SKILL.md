@@ -21,6 +21,8 @@ Create or update the pull request for the current task with a concise descriptio
    - Asked to explain or preview a PR: print the description in chat. Publish only when asked to create or update the PR body.
    - If no PR exists otherwise, stop and offer to open one with [`stage-pr`](../stage-pr/SKILL.md). Don't commit, push, or create a PR from this skill; committing follows [`commit-rules`](../commit-rules/SKILL.md).
 
+   - In a public repo, emails, vault or secret names and other potentially sensitive info out of the body. Slack or JIRA references are fine.
+
 3. If necessary, gather only the context needed to explain the change:
    - Read the ticket and any relevant task artifacts.
    - Read the complete PR diff and enough surrounding code to understand behavior and ownership.

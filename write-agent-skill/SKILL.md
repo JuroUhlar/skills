@@ -3,10 +3,11 @@ name: write-agent-skill
 description: Use when writing, editing, or reviewing agent skills.
 ---
 
+- also load [`write-well`](../write-well/SKILL.md) before editing a skill.
 - optimize for the reader first, then brevity. Explain any term of art inline or with a BAD/GOOD pair.
 - must be generic (not rely on specific harness, model, codebase structure, etc.)
 - Don't overfit content to the specific session that prompted the change, only keep what is generally useful. No narratives or one-off examples.
-- never put credentials or tokens in a skill.
+- never put credentials or tokens in a skill, use gitignored `.env.local` files instead if useful.
 - prefer bullet points over paragraphs of 3+ lines.
 - short skills (default, < 30 lines) can just be nested bullet points, longer skills need sub headings for each substantial linkable unit (principle, rule, step).
 - use BAD vs GOOD examples when useful to illustrate, but don't overdo it.

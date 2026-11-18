@@ -1,7 +1,6 @@
 ---
 name: improve-codebase-architecture
 description: Use when asked to improve, review, or find refactoring opportunities in a codebase's architecture or structure, not a single diff.
-disable-model-invocation: true
 metadata:
   inspiration:
     - https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture

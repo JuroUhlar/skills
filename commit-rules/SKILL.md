@@ -10,12 +10,11 @@ metadata:
 
 # Commit rules
 
-## Ask before auto-committing
+## Commit only when asked
 
-At the first commit point in a session, ask once: "Commit automatically for the rest of this session?" Remember the answer. Without an answer, don't commit, leave local changes to be inspected by the user.
+Commit and push only when the user says so, unless the prompt or the repo's `AGENTS.md` says otherwise. Otherwise leave changes local for the user to inspect.
 
-- Ask before the first commit, never after it.
-- Skip the question when the user already asked you to commit, push, or open a PR.
+- A request to push covers that change, not later work in the session.
 
 ## Branch naming conventions
 
@@ -70,6 +69,10 @@ A conflict is two intents, not two blocks of text.
 5. Run the repo's checks before the merge commit or `rebase --continue`.
 
 Don't resolve with `--ours`/`--theirs` or by deleting the less familiar block.
+
+## Keep commits signed
+
+Reword or split commits with `git commit --amend` or `git rebase`, which sign them like any commit. `git commit-tree` and other plumbing write unsigned commits, which repos that require signatures reject.
 
 ## A refusal is information
 

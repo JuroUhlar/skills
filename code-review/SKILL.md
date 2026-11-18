@@ -35,7 +35,7 @@ Every sub-agent prompt:
 - Runs the diff itself and reads callers/callees beyond it. Under 400 words.
 - Includes the **Finding quality** rules below.
 
-PRs: don't run the suite or lint unless asked; assume CI passes. Targeted repros of a suspected defect are the exception (see **Prove it**). High-risk change: run Production on two different models; issues both raise independently are the strongest signal.
+PRs: don't run the suite or lint unless asked; assume CI passes. Targeted repros of a suspected defect are the exception (see **Prove it**). High-risk change: run Production on two different models; issues both raise independently are the strongest signal. Pass `model` explicitly on each run, since a sub-agent without one gets a default model, and report the model each run's result names.
 
 ## Finding quality
 

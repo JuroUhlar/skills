@@ -95,6 +95,7 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 ### Tools
 
 * [`edit-notion-page`](edit-notion-page/SKILL.md)
+* [`browser-tools`](browser-tools/SKILL.md) picks between the built-in browser, `browse` (as the user, with their logins) and `chrome-devtools`, and holds the Chrome profile ids.
 * [`audit-chat-history`](audit-chat-history/SKILL.md) reviews Claude Code transcripts for failure points and skills that don't load or don't work. Rerun it monthly to see whether fixes landed.
 
 ## Subagents

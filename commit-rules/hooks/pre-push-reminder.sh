@@ -11,6 +11,9 @@ if [[ "$command" =~ git[[:space:]]+-C[[:space:]]+([^[:space:]]+) ]]; then
   [[ "${BASH_REMATCH[1]}" = /* ]] && dir=${BASH_REMATCH[1]} || dir="$dir/${BASH_REMATCH[1]}"
 fi
 branch=$(git -C "${dir:-.}" branch --show-current 2>/dev/null)
+# A rename chained before the push (git branch -m new && git push) runs first, so check the new name.
+[[ "$command" =~ branch[[:space:]]+-[mM][[:space:]]+([^[:space:]\;\&\|]+)([[:space:]]+([^-[:space:]\;\&\|][^[:space:]\;\&\|]*))? ]] \
+  && branch=${BASH_REMATCH[3]:-${BASH_REMATCH[1]}}
 
 respond() {
   jq -n --arg field "$1" --arg text "$2" --arg decision "$3" \
@@ -20,7 +23,9 @@ respond() {
 
 # No upstream means the branch name isn't public yet. Block once per commit, not per branch,
 # so the push after a rename passes.
-if [[ -n "$branch" ]] && ! git -C "$dir" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
+# Names that already follow the convention (ticket ID or type prefix plus words) pass without a block.
+convention='^([A-Z][A-Z0-9]*-[0-9]+|feat|fix|docs|refactor|chore|ci|test|perf|build|style|revert)[-/][a-z0-9]+([-_.][a-zA-Z0-9]+)+$'
+if [[ -n "$branch" ]] && ! [[ "$branch" =~ $convention ]] && ! git -C "$dir" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
   marker="${TMPDIR:-/tmp}/claude-pre-push/$(git -C "$dir" rev-parse --show-toplevel HEAD | git hash-object --stdin | cut -c1-16)"
   if [[ ! -e "$marker" ]]; then
     mkdir -p "$(dirname "$marker")" && touch "$marker"

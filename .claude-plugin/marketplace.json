@@ -15,6 +15,7 @@
       "strict": false,
       "skills": [
         "./audit-chat-history",
+        "./browser-tools",
         "./claude-security-projects",
         "./code-comments",
         "./code-review",
@@ -78,6 +79,15 @@
       ]
     },
     {
+      "name": "browser-tools",
+      "description": "Use before the first browser tool call (browse, chrome-devtools, or the harness's built-in browser), and when a site needs the user's login or blocks curl.",
+      "source": "./browser-tools",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
       "name": "claude-security-projects",
       "description": "Use when creating, configuring, or auditing Claude Security projects (claude.ai/security), or when the Claude Security connector can't set something you need, such as excluded folders or context-only repositories.",
       "source": "./claude-security-projects",
@@ -115,7 +125,7 @@
     },
     {
       "name": "core-principles",
-      "description": "Use when planning, designing, refactoring, or reviewing code, when judging a diff's size or structure, when you are torn between two options, or when the user says to apply core engineering principles (or rules, values) or names one.",
+      "description": "Use when planning, designing, refactoring, or reviewing system architecture or code, when judging a diff's size or structure, when you are torn between two options, or when the user says to apply core engineering principles or rules",
       "source": "./core-principles",
       "strict": false,
       "skills": [
@@ -304,7 +314,7 @@
     },
     {
       "name": "verify-with-proof",
-      "description": "Use after implementing, before claiming work is done, fixed, or passing, before stating a root cause or review finding as fact, and when asked to \"verify\", \"prove it works\", or \"did this fix it\".",
+      "description": "Use after implementing, before claiming work is done, fixed, or passing, before stating a root cause or review finding as fact, before declaring a blocker, declining a review comment, or describing what a site or UI shows, and when asked to \"verify\", \"prove it works\", or \"did this fix it\".",
       "source": "./verify-with-proof",
       "strict": false,
       "skills": [

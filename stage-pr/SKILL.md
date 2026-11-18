@@ -20,6 +20,7 @@ If the work has a ticket (in the branch name, like `INTER-1234-feat-...`, or in 
 
 - Never run `gh pr ready`, `gh pr merge`, or `gh pr merge --auto`, and don't force-push or edit CI workflows to force a green result. The PR stays a draft for the user, unless the user said in this session to merge once it's green.
 - Reply to and resolve only Copilot (bot) review comments. Never reply to, resolve, or react to a human reviewer's comments unless the user asked in this session, even when asked to "implement" or "address" them. Fix the code, then tell the user in chat which commit addresses which comment, or offer drafted replies (see [`pr-comments`](../pr-comments/SKILL.md#who-not-to-reply-to)).
+- Decline a Copilot comment only with a reason you checked this session; an unchecked reason is a guess, so say so or fix it.
 - At most 3 Copilot review rounds. After the third, stop and list the open comments instead of fixing them.
 - A notification or check-in that changes nothing gets one line or no reply. Ask a pending question once; don't repeat it on every check-in.
 - Stop and report when a failure is outside this PR, or when a comment needs a product call.
@@ -50,7 +51,13 @@ The GitHub MCP `request_copilot_review` tool and `gh pr edit --add-reviewer @cop
 gh api -X POST repos/{owner}/{repo}/pulls/{n}/requested_reviewers -f 'reviewers[]=copilot-pull-request-reviewer[bot]'
 ```
 
-Confirm it landed with `gh pr view {n} --json reviewRequests`. If it's still empty, use GraphQL:
+Confirm it landed in the timeline (`reviewRequests` can omit the bot):
+
+```sh
+gh api repos/{owner}/{repo}/issues/{n}/timeline --paginate --jq '.[]|select(.event=="review_requested" and .requested_reviewer.login=="Copilot")|.created_at'
+```
+
+If no request is newer than the push, use GraphQL:
 
 ```sh
 gh api graphql -f id="$(gh pr view {n} --json id -q .id)" -f query='mutation($id: ID!) {
