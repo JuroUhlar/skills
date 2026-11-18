@@ -1,0 +1,16 @@
+{
+  "description": "Remind Claude to load write-agent-skill and write-well before its first SKILL.md edit in a session.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/skill-edit-reminder.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

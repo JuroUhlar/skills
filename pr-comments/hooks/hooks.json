@@ -1,0 +1,16 @@
+{
+  "description": "Remind Claude that declining a review comment needs a checked reason.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|mcp__.*reply.*comment.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/review-reply-reminder.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

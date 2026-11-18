@@ -49,6 +49,15 @@
       "hooks": {
         "PreToolUse": [
           {
+            "matcher": "mcp__browse__.*|mcp__chrome-devtools__.*|mcp__.*Claude_Browser__.*|mcp__claude-in-chrome__.*",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "\"${CLAUDE_PLUGIN_ROOT}/browser-tools/hooks/browser-first-use.sh\""
+              }
+            ]
+          },
+          {
             "matcher": "Bash",
             "hooks": [
               {
@@ -58,11 +67,38 @@
             ]
           },
           {
+            "matcher": "Agent|Task",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "\"${CLAUDE_PLUGIN_ROOT}/orchestrator/hooks/agent-type-reminder.sh\""
+              }
+            ]
+          },
+          {
+            "matcher": "Bash|mcp__.*reply.*comment.*",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "\"${CLAUDE_PLUGIN_ROOT}/pr-comments/hooks/review-reply-reminder.sh\""
+              }
+            ]
+          },
+          {
             "matcher": "Bash|mcp__.*__(create|update)_pull_request",
             "hooks": [
               {
                 "type": "command",
                 "command": "\"${CLAUDE_PLUGIN_ROOT}/visual-pr-description/hooks/pr-create-reminder.sh\""
+              }
+            ]
+          },
+          {
+            "matcher": "Edit|Write|MultiEdit",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "\"${CLAUDE_PLUGIN_ROOT}/write-agent-skill/hooks/skill-edit-reminder.sh\""
               }
             ]
           }

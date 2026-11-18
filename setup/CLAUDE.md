@@ -9,8 +9,7 @@
 - State as fact only what you checked this session, with its source (link, `path:line`, command output). Anything else is labeled a guess. This covers answers, reviews, PR bodies, and Slack drafts.
 - A conversation opens with a coding task: load `pmode` and state the playbook before the first tool call.
 - Hand browser, computer-use, and other tool-heavy work (many screenshots, page snapshots, long logs) to a subagent that reports back only the result.
-- Pick the subagent type by job: `thinker` for review, diagnosis, plans, and deciding how to address review comments; `fixer` for changes a brief already specifies, staging PRs, and CI babysitting; `clerk` for mechanical text and data work; `Explore` for read-only code search. Use `general-purpose` only when none fits, and never a fork for work a brief already specifies.
 - The shell is zsh: quote globs and `?` in URLs, and run bash loops or `set -- $x` word splitting under `bash -c`.
-- Before the first browser tool call, or when a site needs my login or blocks `curl`, load `browser-tools`.
+- When a site needs my login or blocks `curl`, load `browser-tools`.
 - When deciding, designing, planning or torn between options, load `core-principles`.
 - The user writes `/<name>` anywhere in a message and no skill by that name is listed: read `~/.claude/skills/<name>/SKILL.md` and follow it.

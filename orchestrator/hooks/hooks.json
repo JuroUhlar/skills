@@ -1,0 +1,16 @@
+{
+  "description": "Remind Claude to pick a subagent role by job when it spawns a general-purpose or untyped subagent.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/agent-type-reminder.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

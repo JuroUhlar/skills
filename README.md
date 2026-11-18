@@ -56,11 +56,11 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
    2. [`tdd`](tdd/SKILL.md) (test audit)
    3. Apply [`core-principles`](core-principles/SKILL.md)
 7. Human review
-   1. [`visual-pr-description`](visual-pr-description/SKILL.md) ships a [PR-create hook](visual-pr-description/hooks/pr-create-reminder.sh) (Claude Code plugin only) that reminds Claude to write a new PR's body with this skill.
+   1. [`visual-pr-description`](visual-pr-description/SKILL.md) ships a [PR-create hook](visual-pr-description/hooks/pr-create-reminder.sh) (Claude Code plugin only) that reminds Claude to write a new PR's body with this skill, and warns when the repo is public.
       * [`show-me`](show-me/SKILL.md)
       * [`explain-diff`](explain-diff/SKILL.md) writes an interactive HTML explainer of a change, with a quiz.
    2. [`stage-pr`](stage-pr/SKILL.md)
-   3. [`pr-comments`](pr-comments/SKILL.md)
+   3. [`pr-comments`](pr-comments/SKILL.md) ships a [reply hook](pr-comments/hooks/review-reply-reminder.sh) (Claude Code) that reminds Claude a declined review comment needs a reason checked this session.
 
 ### Architecting, gardening
 
@@ -75,7 +75,7 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 * [`code-comments`](code-comments/SKILL.md)
 * [`typescript-best-practices`](typescript-best-practices/SKILL.md)
 * [`commit-rules`](commit-rules/SKILL.md) ships a [pre-push hook](commit-rules/hooks/pre-push-reminder.sh) (Claude Code plugin only). It blocks a branch's first push once so Claude checks the branch name, then reminds Claude to update the open PR's description.
-* [`orchestrator`](orchestrator/SKILL.md)
+* [`orchestrator`](orchestrator/SKILL.md) ships an [agent-type hook](orchestrator/hooks/agent-type-reminder.sh) (Claude Code) that reminds Claude to pick a subagent role by job when it spawns an untyped or `general-purpose` subagent.
 
 ### Debugging
 
@@ -89,13 +89,13 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 
 ### Meta
 
-* [`write-agent-skill`](write-agent-skill/SKILL.md)
+* [`write-agent-skill`](write-agent-skill/SKILL.md) ships a [skill-edit hook](write-agent-skill/hooks/skill-edit-reminder.sh) (Claude Code) that reminds Claude to load it and `write-well` before its first `SKILL.md` edit in a session.
 * [`handoff`](handoff/SKILL.md)
 
 ### Tools
 
 * [`edit-notion-page`](edit-notion-page/SKILL.md)
-* [`browser-tools`](browser-tools/SKILL.md) picks between the built-in browser, `browse` (as the user, with their logins) and `chrome-devtools`, and holds the Chrome profile ids.
+* [`browser-tools`](browser-tools/SKILL.md) picks between the built-in browser, `browse` (as the user, with their logins) and `chrome-devtools`, and holds the Chrome profile ids. Its [hook](browser-tools/hooks/browser-first-use.sh) (Claude Code) reminds Claude to load it on the first browser call in a session.
 * [`audit-chat-history`](audit-chat-history/SKILL.md) reviews Claude Code transcripts for failure points and skills that don't load or don't work. Rerun it monthly to see whether fixes landed.
 
 ## Subagents

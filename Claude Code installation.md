@@ -40,4 +40,4 @@ command -v jq >/dev/null || { apt-get update -qq && apt-get install -y -qq jq; }
 
 ## What needs it
 
-- `commit-rules/hooks/pre-push-reminder.sh` and `visual-pr-description/hooks/pr-create-reminder.sh` need `jq`.
+- The hooks in `*/hooks/` need `jq`.

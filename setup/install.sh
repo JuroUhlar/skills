@@ -18,14 +18,16 @@ mkdir -p "$claude_dir"
 # would be listed twice. Disable every synced plugin that shares a name with a skill here.
 skills=$(for d in "$repo"/*/; do [ -f "$d/SKILL.md" ] && basename "$d"; done | jq -R . | jq -s .)
 
-jq --arg push "\"$repo/commit-rules/hooks/pre-push-reminder.sh\"" \
-  --arg pr "\"$repo/visual-pr-description/hooks/pr-create-reminder.sh\"" \
-  --argjson skills "$skills" '
-  def ours: [.hooks[]?.command // empty] | any(test("pre-push-reminder\\.sh|pr-create-reminder\\.sh"));
-  .hooks.PreToolUse = ([.hooks.PreToolUse[]? | select(ours | not)] + [
-    {matcher: "Bash", hooks: [{type: "command", command: $push}]},
-    {matcher: "Bash|mcp__.*__(create|update)_pull_request", hooks: [{type: "command", command: $pr}]}
-  ])
+# Every skill's hooks/hooks.json, with ${CLAUDE_PLUGIN_ROOT} pointing at that skill's folder.
+hooks=$(for f in "$repo"/*/hooks/hooks.json; do
+  jq --arg root "$(dirname "$(dirname "$f")")" '.hooks | map_values(map(.hooks |= map(.command |= gsub("\\$\\{CLAUDE_PLUGIN_ROOT\\}"; $root))))' "$f"
+done | jq -s 'reduce .[] as $h ({}; reduce ($h | to_entries[]) as $e (.; .[$e.key] += $e.value))')
+
+# Replace hooks registered earlier from this repo (any command under it), keep everyone else's.
+jq --arg repo "$repo/" --argjson ours "$hooks" --argjson skills "$skills" '
+  def mine: [.hooks[]?.command // empty] | any(contains($repo));
+  .hooks = (reduce (((.hooks // {}) | keys) + ($ours | keys) | unique)[] as $event (.hooks // {};
+    .[$event] = ([.[$event][]? | select(mine | not)] + ($ours[$event] // []))))
   | .enabledPlugins = ((.enabledPlugins // {}) + ($skills | map({key: "\(.)@synced", value: false}) | from_entries))
   ' "$settings" > "$settings.tmp" && mv "$settings.tmp" "$settings"
 

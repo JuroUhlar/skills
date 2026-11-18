@@ -1,0 +1,16 @@
+{
+  "description": "Remind Claude to load browser-tools on its first browser tool call in a session.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__browse__.*|mcp__chrome-devtools__.*|mcp__.*Claude_Browser__.*|mcp__claude-in-chrome__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/browser-first-use.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
