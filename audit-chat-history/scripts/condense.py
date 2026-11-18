@@ -3,7 +3,7 @@
 
 Usage: condense.py OUT_DIR [--since YYYY-MM-DD] [--skills-dir DIR] [--batch-kb 450]
 
-Writes OUT_DIR/sessions/*.md, OUT_DIR/stats.json, OUT_DIR/models.json (one row per main session
+Writes OUT_DIR/sessions/*.md, OUT_DIR/stats.json (incl. tool_errors per tool, MCP server, or Bash program), OUT_DIR/models.json (one row per main session
 and sub-agent run: model, turns, tokens), and OUT_DIR/batches/*.txt (one file list per sub-agent). Sessions in the skills repo itself go to batch "meta"; scheduled and headless
 temp-dir runs go to batch "automated".
 """
@@ -30,6 +30,32 @@ def text_of(content):
         return content
     return " ".join(x.get("text", "") for x in content or [] if isinstance(x, dict) and x.get("type") == "text")
 
+# First match wins. Order matters: a gh 403 inside "Exit code 1" output is "external", not "exit".
+ERR_CLASSES = [
+    ("denied", r"doesn't want to proceed|tool use was rejected"),
+    ("hook", r"hook error"),
+    ("harness", r"<tool_use_error>"),
+    ("external", r"\b(401|403|404|429|500|502|503)\b|Forbidden|Unauthorized|timed out|not installed|credentials|authenticat|insufficient scope|ECONN|rate limit"),
+    ("exit", r"^Exit code \d+"),
+]
+
+def err_class(body):
+    # Only the head: long command output quotes "403" or "timed out" without failing for that reason.
+    return next((c for c, rx in ERR_CLASSES if re.search(rx, body[:300], re.I)), "other")
+
+SHELL_WORDS = {"cd", "export", "sudo", "time", "set", "umask", "source", "for", "while", "if", "then", "else", "do", "done", "fi", "[", "[[", "{", "(", "!"}
+
+def tool_key(name, inp):
+    """Group calls by MCP server, by program for Bash, else by tool name."""
+    if name.startswith("mcp__"):
+        return "mcp:" + name.split("__")[1]
+    if name == "Bash":
+        for seg in re.split(r"&&|\|\||;|\|", inp.get("command", "")):
+            words = [w for w in seg.split() if "=" not in w]
+            if words and words[0] not in SHELL_WORDS:
+                return "Bash:" + os.path.basename(words[0])
+    return name
+
 def skill_name(s):
     return s.split(":")[-1]
 
@@ -52,12 +78,14 @@ def usage(path):
 
 loads = collections.defaultdict(lambda: {"model": 0, "user": 0, "sessions": set()})
 hooks, mcp, rows, runs = collections.Counter(), collections.Counter(), [], []
+tools = collections.defaultdict(lambda: {"calls": 0, "errors": 0, "sessions": set(), "classes": collections.Counter(), "sample": ""})
 
 for f in sorted(glob.glob(f"{root}/*/*.jsonl")):
     sid = os.path.basename(f)[:-6]
     lines, title, cost, start, cwd, last_user = [], "", None, None, "", ""
     n_user = n_interrupt = 0
     s_loads, s_hooks, s_mcp = [], collections.Counter(), collections.Counter()
+    s_tool_ids, s_calls, s_errs = {}, collections.Counter(), []
     automated = os.path.basename(os.path.dirname(f)).startswith("-private-tmp")
     for raw in open(f, errors="ignore"):
         try:
@@ -81,7 +109,9 @@ for f in sorted(glob.glob(f"{root}/*/*.jsonl")):
                 if it.get("type") == "tool_result":
                     body = text_of(it.get("content")) if not isinstance(it.get("content"), str) else it["content"]
                     if it.get("is_error"):
-                        lines.append("  TOOL_ERR: " + short(body, 300))
+                        (key, tool), cls = s_tool_ids.get(it.get("tool_use_id"), ("?", "?")), err_class(body)
+                        s_errs.append((key, tool, cls, body))
+                        lines.append(f"  TOOL_ERR {key} [{cls}]: " + short(body, 300))
                     continue
                 tx = it.get("text") or ""
                 if tx.startswith(("<system-reminder>", "<local-command")) or "Base directory for this skill" in tx:
@@ -104,6 +134,9 @@ for f in sorted(glob.glob(f"{root}/*/*.jsonl")):
                     lines.append("ASSISTANT: " + short(it["text"], 900))
                 elif it.get("type") == "tool_use":
                     name, inp = it["name"], it.get("input", {})
+                    key = tool_key(name, inp)
+                    s_tool_ids[it.get("id")] = (key, name)
+                    s_calls[key] += 1
                     if name == "Skill":
                         sk = skill_name(inp.get("skill", ""))
                         if sk in skills:
@@ -128,6 +161,14 @@ for f in sorted(glob.glob(f"{root}/*/*.jsonl")):
         loads[sk]["sessions"].add(sid)
     hooks.update(s_hooks)
     mcp.update(s_mcp)
+    for key, n in s_calls.items():
+        tools[key]["calls"] += n
+    for key, tool, cls, body in s_errs:
+        t = tools[key]
+        t["errors"] += 1
+        t["sessions"].add(sid)
+        t["classes"][cls] += 1
+        t["sample"] = t["sample"] or f"{tool}: {short(body, 200)}"
     project = os.path.basename(os.path.dirname(f))
     models, tokens = usage(f)
     model = models.most_common(1)[0][0] if models else "?"
@@ -180,6 +221,9 @@ stats = {
     "never_loaded": sorted(skills - set(loads)),
     "hook_firings": dict(hooks.most_common()),
     "mcp_calls": dict(mcp.most_common()),
+    "tool_errors": {k: {"calls": v["calls"], "errors": v["errors"], "sessions": len(v["sessions"]),
+                        "classes": dict(v["classes"].most_common()), "sample": v["sample"]}
+                    for k, v in sorted(tools.items(), key=lambda kv: -kv[1]["errors"]) if v["errors"]},
     "models": dict(sorted(by_model.items(), key=lambda kv: -kv[1]["tokens"])),
     "batches": {k: len(v) for k, v in sorted(batches.items())},
 }
