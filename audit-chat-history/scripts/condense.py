@@ -3,18 +3,26 @@
 
 Usage: condense.py OUT_DIR [--since YYYY-MM-DD] [--skills-dir DIR] [--batch-kb 450]
 
-Writes OUT_DIR/sessions/*.md, OUT_DIR/stats.json (incl. tool_errors per tool, MCP server, or Bash program), OUT_DIR/models.json (one row per main session
-and sub-agent run: model, turns, tokens), and OUT_DIR/batches/*.txt (one file list per sub-agent). Sessions in the skills repo itself go to batch "meta"; scheduled and headless
-temp-dir runs go to batch "automated".
+Writes OUT_DIR/sessions/*.md, OUT_DIR/stats.json, OUT_DIR/models.json (one row per main session
+and sub-agent run: model, turns, tokens), and OUT_DIR/batches/*.txt (one file list per sub-agent).
+Sessions in the skills repo itself go to batch "meta"; scheduled and headless temp-dir runs go to batch "automated".
+
+The previous audit is the newest sibling of OUT_DIR with a stats.json and an earlier name. Without --since,
+only sessions after it are read, and stats.json gets "change": the delta in skill loads and tool errors.
 """
 import argparse, collections, glob, json, os, re
 
 ap = argparse.ArgumentParser()
 ap.add_argument("out")
-ap.add_argument("--since", default="0000")
+ap.add_argument("--since")
 ap.add_argument("--skills-dir", default=os.path.normpath(os.path.join(os.path.dirname(__file__), "../..")))
 ap.add_argument("--batch-kb", type=int, default=450)
 a = ap.parse_args()
+
+out_parent, out_name = os.path.split(os.path.abspath(a.out))
+prev = max((d for d in os.listdir(out_parent) if d < out_name and os.path.isfile(os.path.join(out_parent, d, "stats.json"))),
+           default=None) if os.path.isdir(out_parent) else None
+a.since = a.since or prev or "0000"
 
 root = os.path.join(os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude")), "projects")
 skills = {d for d in os.listdir(a.skills_dir) if os.path.isfile(os.path.join(a.skills_dir, d, "SKILL.md"))}
@@ -35,7 +43,8 @@ ERR_CLASSES = [
     ("denied", r"doesn't want to proceed|tool use was rejected"),
     ("hook", r"hook error"),
     ("harness", r"<tool_use_error>"),
-    ("external", r"\b(401|403|404|429|500|502|503)\b|Forbidden|Unauthorized|timed out|not installed|credentials|authenticat|insufficient scope|ECONN|rate limit"),
+    ("external", r"(HTTP|status|code|failed)\W{0,4}(401|403|404|429|5\d\d)\b|Forbidden|Unauthorized|timed out|not installed|"
+                 r"current credentials|not authenticated|sign in|insufficient scope|ECONN\w+|ENOTFOUND|rate limit"),
     ("exit", r"^Exit code \d+"),
 ]
 
@@ -78,14 +87,15 @@ def usage(path):
 
 loads = collections.defaultdict(lambda: {"model": 0, "user": 0, "sessions": set()})
 hooks, mcp, rows, runs = collections.Counter(), collections.Counter(), [], []
-tools = collections.defaultdict(lambda: {"calls": 0, "errors": 0, "sessions": set(), "classes": collections.Counter(), "sample": ""})
+tools = collections.defaultdict(lambda: {"calls": 0, "sessions": set(), "classes": collections.Counter(), "loops": 0, "sample": ""})
 
 for f in sorted(glob.glob(f"{root}/*/*.jsonl")):
     sid = os.path.basename(f)[:-6]
     lines, title, cost, start, cwd, last_user = [], "", None, None, "", ""
     n_user = n_interrupt = 0
     s_loads, s_hooks, s_mcp = [], collections.Counter(), collections.Counter()
-    s_tool_ids, s_calls, s_errs = {}, collections.Counter(), []
+    s_tool_ids, s_calls, s_errs, s_loops = {}, collections.Counter(), [], collections.Counter()
+    streak = None  # [signature, line index, count] of the current run of identical failures
     automated = os.path.basename(os.path.dirname(f)).startswith("-private-tmp")
     for raw in open(f, errors="ignore"):
         try:
@@ -108,10 +118,19 @@ for f in sorted(glob.glob(f"{root}/*/*.jsonl")):
             for it in content if isinstance(content, list) else [{"type": "text", "text": content}]:
                 if it.get("type") == "tool_result":
                     body = text_of(it.get("content")) if not isinstance(it.get("content"), str) else it["content"]
-                    if it.get("is_error"):
-                        (key, tool), cls = s_tool_ids.get(it.get("tool_use_id"), ("?", "?")), err_class(body)
-                        s_errs.append((key, tool, cls, body))
-                        lines.append(f"  TOOL_ERR {key} [{cls}]: " + short(body, 300))
+                    if not it.get("is_error"):
+                        streak = None
+                        continue
+                    (key, tool), cls = s_tool_ids.get(it.get("tool_use_id"), ("?", "?")), err_class(body)
+                    s_errs.append((key, tool, cls, body))
+                    line, sig = f"  TOOL_ERR {key} [{cls}]: " + short(body, 300), (key, body[:120])
+                    if streak and streak[0] == sig:
+                        streak[2] += 1
+                        lines[streak[1]] = f"{line} (repeated {streak[2]} times)"
+                        s_loops[key] += streak[2] == 2
+                    else:
+                        streak = [sig, len(lines), 1]
+                        lines.append(line)
                     continue
                 tx = it.get("text") or ""
                 if tx.startswith(("<system-reminder>", "<local-command")) or "Base directory for this skill" in tx:
@@ -163,12 +182,14 @@ for f in sorted(glob.glob(f"{root}/*/*.jsonl")):
     mcp.update(s_mcp)
     for key, n in s_calls.items():
         tools[key]["calls"] += n
+    for key, n in s_loops.items():
+        tools[key]["loops"] += n
     for key, tool, cls, body in s_errs:
         t = tools[key]
-        t["errors"] += 1
-        t["sessions"].add(sid)
         t["classes"][cls] += 1
-        t["sample"] = t["sample"] or f"{tool}: {short(body, 200)}"
+        if cls != "exit":  # Mostly harmless (grep with no match); counted, but no sample and no session.
+            t["sessions"].add(sid)
+            t["sample"] = t["sample"] or f"{tool}: {short(body, 200)}"
     project = os.path.basename(os.path.dirname(f))
     models, tokens = usage(f)
     model = models.most_common(1)[0][0] if models else "?"
@@ -221,11 +242,28 @@ stats = {
     "never_loaded": sorted(skills - set(loads)),
     "hook_firings": dict(hooks.most_common()),
     "mcp_calls": dict(mcp.most_common()),
-    "tool_errors": {k: {"calls": v["calls"], "errors": v["errors"], "sessions": len(v["sessions"]),
+    "tool_errors": {k: {"calls": v["calls"], "sessions": len(v["sessions"]), "loops": v["loops"],
                         "classes": dict(v["classes"].most_common()), "sample": v["sample"]}
-                    for k, v in sorted(tools.items(), key=lambda kv: -kv[1]["errors"]) if v["errors"]},
+                    for k, v in sorted(tools.items(), key=lambda kv: (-kv[1]["classes"]["external"] - kv[1]["classes"]["harness"],
+                                                                       -kv[1]["loops"], -sum(kv[1]["classes"].values())))
+                    if v["sample"]},
     "models": dict(sorted(by_model.items(), key=lambda kv: -kv[1]["tokens"])),
     "batches": {k: len(v) for k, v in sorted(batches.items())},
 }
+def failures(errs):
+    return {k: sum(n for c, n in v.get("classes", {}).items() if c != "exit") or v.get("errors", 0) for k, v in errs.items()}
+
+if prev:
+    old = json.load(open(os.path.join(out_parent, prev, "stats.json")))
+    old_loads, new_loads = old.get("skill_loads", {}), stats["skill_loads"]
+    old_errs, new_errs = failures(old.get("tool_errors", {})), failures(stats["tool_errors"])
+    stats["change"] = {
+        "previous": prev,
+        "model_loads": {k: new_loads.get(k, {}).get("model", 0) - old_loads.get(k, {}).get("model", 0)
+                        for k in sorted(set(old_loads) | set(new_loads))},
+        "tool_failures": {k: new_errs.get(k, 0) - old_errs.get(k, 0) for k in sorted(set(old_errs) | set(new_errs))},
+    }
+    for field in ("model_loads", "tool_failures"):
+        stats["change"][field] = {k: v for k, v in stats["change"][field].items() if v}
 json.dump(stats, open(f"{a.out}/stats.json", "w"), indent=1)
 print(json.dumps(stats, indent=1))
