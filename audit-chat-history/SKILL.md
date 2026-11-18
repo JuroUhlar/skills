@@ -10,14 +10,22 @@ Find where sessions go wrong, which skills help, and which are skipped or ignore
 
 ## What to look for
 
-Each item is a section of `REPORT.md`, and a field in the [brief's per-session template](references/brief.md#per-session).
+Find incidents, then tag each with its cause. Each cause names the fix that would prevent the incident next time.
 
-- **Skills**: loaded by the model or typed by the user, fit but not loaded, loaded but a rule ignored.
-- **Corrections**: user corrections and interrupts, tagged by cause.
-- **Setup failures**: a tool or connector that errors on most calls (auth, scope, 403, timeout), a hook that blocks or never fires, the same failing call retried, a workaround the agent rediscovers in several sessions.
-- **Permission denials**: actions the user keeps rejecting.
-- **Model fit**: judgment work on a cheap model, mechanical work on the strongest one, a generic sub-agent where a defined agent fit.
-- **Prompting**: what the opening prompt lacked that the user supplied later.
+Incidents:
+- **Mistake**: the user corrected or interrupted the agent, rejected a tool call, or a claim of "done" turned out false.
+- **Wasted effort**: many turns spent finding something knowable (a command, a file, an API quirk), retrying a failing call, or rediscovering a workaround from an earlier session.
+- **Confusion**: wrong approach or tool, a misread task, or asking the user something the agent could look up.
+
+Causes:
+- **not-loaded**: a skill covers it but didn't load. Fix the description, or move the rule to an always-loaded file.
+- **ignored**: the skill loaded but the agent skipped the rule. Move the rule to the decision point; don't reword it.
+- **missing-rule**: the skill loaded, but nothing in it covers this. Add text.
+- **no-skill**: no skill covers it. Propose one only if it recurs or cost many turns.
+- **conflict**: two skills or instruction files disagree. Pick one and delete the other.
+- **setup**: a connector (auth, scope, install), hook, permission, agent definition, or duplicate install.
+- **prompt**: the opening prompt lacked something the user supplied later.
+- **model**: judgment work (review, diagnosis, design) on a cheap model, mechanical work (copying, bulk edits, polling, extraction) on the strongest, or a generic sub-agent where a defined agent fit.
 
 ## 1. Condense
 
@@ -45,13 +53,9 @@ One sub-agent per batch, all in parallel, each with [references/brief.md](refere
 ## 3. Verify before proposing
 
 - Read the previous report's Decisions and don't re-propose what the user rejected. Check that what they removed or fixed is gone from `tool_errors`.
-- Grep the current `SKILL.md` files for every rule a sub-agent says is missing. Sub-agents often propose rules that already exist.
+- Grep the current `SKILL.md` files for every rule a sub-agent tags **missing-rule** or **no-skill**. Sub-agents often propose rules that already exist, which makes the incident **not-loaded** or **ignored**.
 - Read `tool_errors` yourself. Sub-agents see one batch, so they miss a connector failing across batches.
-- Read the user's agent definitions and routing rules before totalling the sub-agents' model mismatches, since they set what "fitting" means.
-- Tag each proposal:
-  - **missing**: add text.
-  - **ignored**: the rule exists, so change where it sits or what triggers it, not its wording.
-  - **setup**: hooks, connectors (auth, scope, install, or remove), agent definitions, settings, duplicate installs.
+- Read the user's agent definitions and routing rules before totalling **model** incidents, since they set what "fitting" means.
 - Before proposing a hard block (deny hook, permission rule), count both the incidents and the times the user wanted the blocked action. One incident against several legitimate uses is better fixed in the skill text.
 
 ## 4. Report
@@ -59,7 +63,10 @@ One sub-agent per batch, all in parallel, each with [references/brief.md](refere
 Write `REPORT.md` next to the stats:
 
 - Scope: sessions, dates, cost, and the `change` since the previous audit.
-- One section per [What to look for](#what-to-look-for) item, with counts and session refs. The skills section is a table of model loads, user loads, and verdict, with never-loaded skills split into "fit a session but weren't loaded" and "no occasion".
-- Proposed edits, tagged as above, with the evidence.
+- Incidents grouped by [cause](#what-to-look-for), most costly first, with counts, turns lost, and session refs.
+- Failing tools and connectors from `tool_errors`.
+- Skill table: model loads, user loads, verdict. Split never-loaded skills into "fit a session but weren't loaded" and "no occasion".
+- Models: tokens by model for main sessions and sub-agents.
+- Proposed edits, one per cause group, with the evidence.
 
 Summarize in chat and offer to apply the proposals. Don't edit skills during the audit. Once the user answers, append `## Decisions`: what was applied, rejected (with the reason), kept on purpose, and removed. The next audit reads it.
