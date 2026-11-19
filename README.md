@@ -98,6 +98,12 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 * [`browser-tools`](browser-tools/SKILL.md) picks between the built-in browser, `browse` (as the user, with their logins) and `chrome-devtools`, and holds the Chrome profile ids. Its [hook](browser-tools/hooks/browser-first-use.sh) (Claude Code) reminds Claude to load it on the first browser call in a session.
 * [`audit-chat-history`](audit-chat-history/SKILL.md) reviews Claude Code transcripts for failure points and skills that don't load or don't work. Rerun it monthly to see whether fixes landed.
 
+### Experimental
+
+Invoke only by name; not yet linked from other skills.
+
+* [`exp-formal-verification`](exp-formal-verification/SKILL.md) model-checks a design with TLA+ and [everystate](https://github.com/mattzcarey/everystate) to find races and bad step orders.
+
 ## Subagents
 
 [`agents/`](agents/README.md) defines subagent roles with a model tier each: `thinker` (strong), `fixer` (mid), `clerk` (cheap), and a read-only `Explore` (cheap). `setup/install.sh` writes them for Claude Code and Codex.

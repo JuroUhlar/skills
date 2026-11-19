@@ -24,6 +24,7 @@
         "./create-verification-skill",
         "./diagnose-bug",
         "./edit-notion-page",
+        "./exp-formal-verification",
         "./explain-diff",
         "./grill-me",
         "./handoff",
@@ -190,6 +191,15 @@
       "name": "edit-notion-page",
       "description": "Use when creating, editing, or rewriting a Notion page through the Notion MCP (notion-update-page, update_content, replace_content).",
       "source": "./edit-notion-page",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "exp-formal-verification",
+      "description": "Use when the user invokes exp-formal-verification.",
+      "source": "./exp-formal-verification",
       "strict": false,
       "skills": [
         "./"
