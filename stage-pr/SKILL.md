@@ -27,7 +27,8 @@ If the work has a ticket (in the branch name, like `INTER-1234-feat-...`, or in 
 
 ## Loop
 
-Refresh state every pass with `gh pr view` and `gh pr checks` (`--watch`). 
+Refresh state every pass with `gh pr view` and `gh pr checks` (no `--watch`).
+Never wait on CI or reviews in the foreground: it blocks the user. Use the harness's PR watch tool (such as `watch_pull_request`) or a background command, then end the turn.
 For every failure or review finding 
 
 * Read failing CI log (if exists) and fix failures if they are in this PR or easy to fix. 
