@@ -20,6 +20,13 @@ Test through the public **interface**: where callers observe behavior without re
 
 **Test only at pre-agreed interfaces.** Before writing any test, list the interfaces and confirm them with the user; no test at an unconfirmed one. Interfaces in a spec the user already confirmed count as confirmed. One line per interface: what it catches, what it misses. Ask: "Which public interfaces should we test?"
 
+**Prefer the outermost interface.** Fewer, broader tests beat many narrow ones.
+- Default: e2e or route-level tests, one per user story or expected behavior in the spec.
+- Unit tests only at a module boundary, or for logic with many input/output cases that are costly to reach from outside (a filter, a parser, a pricing rule).
+- Drop to a lower level when the outer one is slow or flaky to set up (see [When a test isn't worth it](#when-a-test-isnt-worth-it)).
+- BAD: a unit test for a thin route handler whose route an e2e test already covers.
+- GOOD: a table of inputs and outputs for the filter function that handler calls.
+
 See [Pre-factor](../core-principles/SKILL.md#pre-factor) for when to refactor before adding a test.
 
 ## The loop
