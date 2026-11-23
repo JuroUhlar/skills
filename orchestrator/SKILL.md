@@ -57,6 +57,11 @@ Ruling: <what>. Why: <why>. Cost if wrong: <cost>.
 
 A delegate's claim is a lead, not a finding. Check it before passing it on, per [`verify-with-proof`](../verify-with-proof/SKILL.md#delegation).
 
+### Delegate into a thread you can talk to
+
+- Prefer a delegate that runs in its own thread: you can read its transcript while it works, message it mid-task, and it can ask you back. Use the harness's thread or task tools when it has them.
+- Fall back to a resumable subagent you can message by ID. Use a fire-and-forget subagent only for short tasks with no expected questions.
+
 ### Brief with links
 
 Pass delegates file paths, URLs, and commit SHAs, not your summaries of them.

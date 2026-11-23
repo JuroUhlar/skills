@@ -11,5 +11,6 @@
 - Hand browser, computer-use, and other tool-heavy work (many screenshots, page snapshots, long logs) to a subagent that reports back only the result.
 - The shell is zsh: quote globs and `?` in URLs, and run bash loops or `set -- $x` word splitting under `bash -c`.
 - When a site needs my login or blocks `curl`, load `browser-tools`.
+- Secrets from 1Password (`op`): read each one once per session, save it to a `chmod 600` `.env` file in the scratchpad, and read it from there afterwards. Every `op` call may ask me to unlock 1Password. Never print the values.
 - When deciding, designing, planning or torn between options, load `core-principles`.
 - The user writes `/<name>` anywhere in a message and no skill by that name is listed: read `~/.claude/skills/<name>/SKILL.md` and follow it.
