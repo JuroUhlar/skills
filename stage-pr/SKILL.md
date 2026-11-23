@@ -22,6 +22,7 @@ If the work has a ticket (in the branch name, like `INTER-1234-feat-...`, or in 
 - Reply to and resolve only Copilot (bot) review comments. Never reply to, resolve, or react to a human reviewer's comments unless the user asked in this session, even when asked to "implement" or "address" them. Fix the code, then tell the user in chat which commit addresses which comment, or offer drafted replies (see [`pr-comments`](../pr-comments/SKILL.md#who-not-to-reply-to)).
 - Decline a Copilot comment only with a reason you checked this session; an unchecked reason is a guess, so say so or fix it.
 - At most 3 Copilot review rounds. After the third, stop and list the open comments instead of fixing them.
+- The same CI failure survives 2 fix attempts: stop and report what you tried instead of trying a third.
 - A notification or check-in that changes nothing gets one line or no reply. Ask a pending question once; don't repeat it on every check-in.
 - Stop and report when a failure is outside this PR, or when a comment needs a product call.
 
@@ -33,8 +34,10 @@ For every failure or review finding
 
 * Read failing CI log (if exists) and fix failures if they are in this PR or easy to fix. 
   * If the failure is outside this PR or hard to fix, report it and ask the user to fix it.
-* Review Copilot findings without getting bullied into scope creep.
-  * Fix real issues or even small nits but push back against large changes beyond the original scope and goal. 
+* Review Copilot findings without getting bullied into scope creep. Judge each against the PR's goal, never accept all by default:
+  * **Fix**: a real defect or a small nit inside the change.
+  * **Decline** with a checked reason: wrong, or contradicts the goal.
+  * **Follow-up**: correct but grows the change. Reply that it's out of scope, list it for the user.
 * Verify locally (if cheap)
 * Push 
 * CI starts automatically but you must re-request Copilot review (see below)

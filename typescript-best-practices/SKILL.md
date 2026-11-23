@@ -30,6 +30,7 @@ metadata:
 ## Narrowing
 
 - External data (`JSON.parse`, `fetch`, `postMessage`, env, files, DB rows) is `unknown`, never `any`.
+- `unknown` stays at the edge. Past the parser, parameters and return types are domain types, not `unknown`, `object`, or `Record<string, unknown>`. Exceptions: a type guard's input, an error `cause`, a generic constraint.
 - Prefer, in order: discriminant `switch`/`if` > `in` > `typeof`/`instanceof` > type guard > `as` after validation.
 - A type guard must check everything its `x is T` claims. A lying guard is worse than `as`: the bug hides behind a name that says it's safe.
   - BAD: `isUser(d): d is User { return typeof d === "object" && d !== null && "id" in d }` while `User` also has `name`.
@@ -52,6 +53,9 @@ Build the shape so the illegal value can't exist, instead of checking at runtime
 ## Small tools
 
 - `satisfies` over `as` for literals: `{ theme: "dark" } satisfies Config` keeps `theme` as `"dark"` and still checks the shape.
+- Don't throw away a type you know. No `as unknown as T`, and no annotation broader than the value.
+  - BAD: `const handlers: Record<string, Handler> = { start, stop }`. `handlers.strat` compiles.
+  - GOOD: `const handlers = { start, stop } satisfies Record<string, Handler>`.
 - `Pick`, `Omit`, `Parameters`, `ReturnType`, `Awaited`, `typeof` before declaring a new interface that copies an existing shape.
 - Object args when a function takes 2+ params of the same type, so swapped arguments don't compile. Skip on hot paths (per-frame render, tokenizers, parsers) where the allocation matters.
   - BAD: `select(10, 1, 10, 5)`. GOOD: `select({ startLine: 10, startCol: 1, endLine: 10, endCol: 5 })`.

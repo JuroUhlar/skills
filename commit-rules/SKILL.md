@@ -39,6 +39,7 @@ Run `git status` before staging. Stage explicit paths, never `git add -A` or `gi
   - Subject: imperative, sentence case, ends with a period, under ~72 characters.
   - Body: optional. One sentence of why, or bullets for multiple changes.
 - Follow [`write-well`](../write-well/SKILL.md).
+- No customer or org names, user emails, support-ticket contents, secrets, or other personal data in commit messages or branch names. Describe the technical symptom: "Retry on 429 from the billing API", not "Fix Acme's failed checkout".
 
 ```
 BAD:  feat(auth): updated token refresh logic
