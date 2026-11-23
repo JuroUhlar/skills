@@ -2,6 +2,7 @@
 # Wires this repo into Claude Code for installs that copy or symlink skill folders instead of
 # installing the plugin: registers the skills' hooks, imports the global instructions,
 # writes the subagent roles in agents/, and disables claude.ai-synced copies of these skills.
+# Also wires the rules, hooks, and roles into GitHub Copilot CLI when ~/.copilot exists.
 # Idempotent; rerun after pulling.
 set -euo pipefail
 
@@ -102,5 +103,37 @@ for src in "$repo"/agents/*.md; do
     } > "$codex_dir/agents/$cname.toml"
   fi
 done
+
+# GitHub Copilot CLI reads skills from ~/.agents/skills itself. Give it the global rules
+# (symlinked, so edits apply without rerunning), the hooks (it accepts the Claude format),
+# and the subagent roles.
+copilot_dir=${COPILOT_HOME:-$HOME/.copilot}
+if [ -d "$copilot_dir" ]; then
+  mkdir -p "$copilot_dir/instructions" "$copilot_dir/hooks" "$copilot_dir/agents"
+  copilot_model=gemini-4-neon
+  copilot_settings=$copilot_dir/settings.json
+  [ -s "$copilot_settings" ] || echo '{}' > "$copilot_settings"
+  jq --arg m "$copilot_model" '.model = $m' "$copilot_settings" > "$copilot_settings.tmp" && mv "$copilot_settings.tmp" "$copilot_settings"
+  ln -sfn "$repo/setup/CLAUDE.md" "$copilot_dir/instructions/juraj-skills.instructions.md"
+  jq -n --argjson hooks "$hooks" '{version: 1, hooks: $hooks}' > "$copilot_dir/hooks/juraj-skills.json"
+  { grep -lF "$marker" "$copilot_dir"/agents/*.md 2>/dev/null || true; } | while read -r f; do rm "$f"; done
+  for src in "$repo"/agents/*.md; do
+    name=$(field name "$src")
+    [ -n "$name" ] || continue
+    desc=$(field description "$src")
+    {
+      echo "---"
+      echo "name: $name"
+      echo "description: $(jq -Rn --arg v "$desc" '$v')"
+      # Copilot is used only for Gemini Neon; the other Gemini models aren't good enough yet.
+      echo "model: $copilot_model"
+      [ "$(field readonly "$src")" = true ] && echo "tools: [read, search, execute, web]"
+      echo "---"
+      echo "<!-- $marker$(basename "$src"). Edit that file, not this one. -->"
+      echo
+      body "$src"
+    } > "$copilot_dir/agents/$name.agent.md"
+  done
+fi
 
 echo "Hooks, global instructions, subagents, and synced-duplicate suppression installed from $repo"

@@ -7,6 +7,10 @@
 - Writes the subagent roles in [`agents/`](agents/README.md) to `~/.claude/agents`, and to `~/.codex/agents` if Codex is installed.
 - Sets `CLAUDE_CODE_SUBAGENT_MODEL` to the mid-tier model, so subagents without their own model, like the built-in `general-purpose`, don't run on the main model. TODO: Evaluate this choice in future audits
 - Disables claude.ai-synced plugins (`<name>@synced`) that duplicate a skill here.
+- If GitHub Copilot CLI is installed (`~/.copilot` exists), gives it the same rules, hooks, and subagent roles. Copilot already reads the skills from `~/.agents/skills`:
+  - Symlinks `setup/CLAUDE.md` to `~/.copilot/instructions/juraj-skills.instructions.md`.
+  - Writes the hooks to `~/.copilot/hooks/juraj-skills.json`. Copilot accepts the Claude hook format.
+  - Writes the roles to `~/.copilot/agents/*.agent.md` pinned to `gemini-4-neon`, and sets that as the default model in `~/.copilot/settings.json`. Copilot is used only for Gemini Neon.
 
 ## Local
 

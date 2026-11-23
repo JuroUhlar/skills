@@ -28,6 +28,8 @@ Any agent harness, with [`skills`](https://github.com/vercel-labs/skills):
 npx skills add JuroUhlar/skills
 ```
 
+GitHub Copilot CLI: clone this repo to `~/.agents/skills`, which Copilot reads skills from, then run `setup/install.sh` for the rules, hooks, and subagents.
+
 Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](setup/install.sh) to get the hooks and global rules; see `Claude Code installation.md`.
 
 ## Skills
@@ -106,7 +108,7 @@ Invoke only by name; not yet linked from other skills.
 
 ## Subagents
 
-[`agents/`](agents/README.md) defines subagent roles with a model tier each: `thinker` (strong), `fixer` (mid), `clerk` (cheap), and a read-only `Explore` (cheap). `setup/install.sh` writes them for Claude Code and Codex.
+[`agents/`](agents/README.md) defines subagent roles with a model tier each: `thinker` (strong), `fixer` (mid), `clerk` (cheap), and a read-only `Explore` (cheap). `setup/install.sh` writes them for Claude Code, Codex, and GitHub Copilot CLI.
 
 ## Evals
 
