@@ -6,17 +6,18 @@ disable-model-invocation: true
 
 # Council
 
-Get independent second opinions from the other frontier models on a review, a decision, or a sanity check.
+Get independent second opinions from the other frontier models on a review, a design, a decision, or a sanity check.
 
 ## Members
 
-The council is the two models below that aren't running this session.
+Default council: the models below whose family (Claude, GPT, Gemini, Grok) isn't running this session. Hard mode, when the user says "hard" or "hardmode": use the hard-mode column and add Grok.
 
-| Model | Provider instance | Model id |
-|---|---|---|
-| Opus | `claudeAgent` (Claude subscription) | `claude-opus-5-5` |
-| Sol | `acpRegistry_github_copilot` (GitHub Copilot) | `gpt-6.2-sol` |
-| Neon | `acpRegistry_github_copilot` (GitHub Copilot) | `gemini-4-neon` |
+| Family | Default | Hard mode | Provider instance |
+|---|---|---|---|
+| Claude | Opus `claude-opus-5-5` | Fable `claude-fable-5-2` | `claudeAgent` (Claude subscription) |
+| GPT | Sol `gpt-6.2-sol` | Astra `gpt-6.2-astra` | `acpRegistry_github_copilot` (GitHub Copilot) |
+| Gemini | Neon `gemini-4-neon` | Neon `gemini-4-neon` | `acpRegistry_github_copilot` |
+| Grok | none | newest Grok in the model list (`grok-4.7` now) | `acpRegistry_github_copilot` |
 
 - Never use the `codex` provider, even though it also serves Sol.
 - Launch with the harness's cross-provider delegation (T3 Code: `delegate_task` with `target.providerInstanceId` and `target.model`). If a model id is missing, check the harness's model list for the newest model of that family and say which one you used.
