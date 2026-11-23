@@ -21,6 +21,7 @@
         "./code-review",
         "./commit-rules",
         "./core-principles",
+        "./council",
         "./create-verification-skill",
         "./diagnose-bug",
         "./edit-notion-page",
@@ -164,6 +165,15 @@
       "name": "core-principles",
       "description": "Use when planning, designing, refactoring, or reviewing system architecture or code, when judging a diff's size or structure, when you are torn between two options, or when the user says to apply core engineering principles or rules",
       "source": "./core-principles",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "council",
+      "description": "Use when the user invokes council.",
+      "source": "./council",
       "strict": false,
       "skills": [
         "./"

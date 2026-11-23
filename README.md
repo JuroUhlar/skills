@@ -97,6 +97,7 @@ Or copy a skill folder into `~/.claude/skills/`. Then run [`setup/install.sh`](s
 ### Tools
 
 * [`edit-notion-page`](edit-notion-page/SKILL.md)
+* [`council`](council/SKILL.md) asks the other two of Opus, Sol, and Neon (via Claude and GitHub Copilot, not Codex) for independent second opinions and reports where they agree and differ. Invoke by name.
 * [`browser-tools`](browser-tools/SKILL.md) picks between the built-in browser, `browse` (as the user, with their logins) and `chrome-devtools`, and holds the Chrome profile ids. Its [hook](browser-tools/hooks/browser-first-use.sh) (Claude Code) reminds Claude to load it on the first browser call in a session.
 * [`audit-chat-history`](audit-chat-history/SKILL.md) reviews Claude Code transcripts for failure points and skills that don't load or don't work. Rerun it monthly to see whether fixes landed.
 
