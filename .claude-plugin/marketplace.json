@@ -35,7 +35,9 @@
         "./orchestrator",
         "./pmode",
         "./pr-comments",
+        "./reframe",
         "./security-advisory",
+        "./sharpen",
         "./show-me",
         "./snyk-api",
         "./stage-pr",
@@ -297,9 +299,27 @@
       ]
     },
     {
+      "name": "reframe",
+      "description": "Use when the user invokes reframe, lacks the technical vocabulary for what they want to build, or asks to map a rough description to expert terms and rewrite it as a prompt without executing the task.",
+      "source": "./reframe",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
       "name": "security-advisory",
       "description": "Use when drafting, reviewing, or publishing a security advisory (GHSA, CVE) for a vulnerability in your own project.",
       "source": "./security-advisory",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "sharpen",
+      "description": "Use when the user invokes sharpen, or asks to make a task or prompt deeper, not bigger, and rewrite it before running the task.",
+      "source": "./sharpen",
       "strict": false,
       "skills": [
         "./"
