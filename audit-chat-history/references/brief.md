@@ -1,6 +1,6 @@
 # Sub-agent brief: audit one batch of Claude Code sessions
 
-Goal: find incidents (mistakes, wasted effort, confusion) and the cause of each. First read the "What to look for" section of `{SKILLS_DIR}/audit-chat-history/SKILL.md`, which defines incidents and cause tags. Read a skill's `SKILL.md` before judging whether it covers an incident.
+Goal: find incidents (mistakes, wasted effort, confusion) and the cause of each. First read the "What to look for" section of `{SKILLS_DIR}/reflect/SKILL.md`, which defines incidents, cause tags, and the durability filter. Read a skill's `SKILL.md` before judging whether it covers an incident.
 
 ## Input
 

@@ -35,6 +35,7 @@
         "./orchestrator",
         "./pmode",
         "./pr-comments",
+        "./reflect",
         "./reframe",
         "./security-advisory",
         "./sharpen",
@@ -111,7 +112,7 @@
     },
     {
       "name": "audit-chat-history",
-      "description": "Use when the user invokes audit-chat-history, asks to audit Claude Code chat history for failure points, skill effectiveness, or prompting style, or asks to reflect on the current session.",
+      "description": "Use when the user invokes audit-chat-history or asks to audit Claude Code chat history for failure points, skill effectiveness, or prompting style.",
       "source": "./audit-chat-history",
       "strict": false,
       "skills": [
@@ -293,6 +294,15 @@
       "name": "pr-comments",
       "description": "Use when replying to or resolving PR review comments, or staging/drafting PR review comments without posting them. Covers mechanics, not judgment about what to fix.",
       "source": "./pr-comments",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "reflect",
+      "description": "Use when the user invokes reflect or asks to capture lessons from the current session.",
+      "source": "./reflect",
       "strict": false,
       "skills": [
         "./"
