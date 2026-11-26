@@ -111,7 +111,7 @@
     },
     {
       "name": "audit-chat-history",
-      "description": "Use when the user invokes audit-chat-history or asks to audit Claude Code chat history for failure points, skill effectiveness, or prompting style.",
+      "description": "Use when the user invokes audit-chat-history, asks to audit Claude Code chat history for failure points, skill effectiveness, or prompting style, or asks to reflect on the current session.",
       "source": "./audit-chat-history",
       "strict": false,
       "skills": [
