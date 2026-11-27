@@ -9,3 +9,6 @@ fp-*/
 dist/
 node_modules/
 evals/results/
+
+# Installed and kept current by the Scrawl app.
+scrawl/
