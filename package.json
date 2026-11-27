@@ -6,7 +6,7 @@
   },
   "scripts": {
     "build": "node scripts/skills.ts build",
-    "check": "tsc && node scripts/skills.ts check",
+    "check": "tsc && tsc -p perf-review && node --test 'perf-review/scripts/*.test.ts' && node scripts/skills.ts check",
     "eval": "node scripts/skills.ts eval"
   },
   "dependencies": {

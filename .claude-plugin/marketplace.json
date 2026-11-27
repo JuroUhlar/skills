@@ -33,6 +33,7 @@
         "./improve-codebase-docs",
         "./improve-codebase-guardrails",
         "./orchestrator",
+        "./perf-review",
         "./pmode",
         "./pr-comments",
         "./reflect",
@@ -276,6 +277,15 @@
       "name": "orchestrator",
       "description": "Use when running long or multi-step work, delegating to subagents or parallel agents, working autonomously while the user is away (\"I'm going to bed\", \"keep working on your own\"), or resuming after context compaction.",
       "source": "./orchestrator",
+      "strict": false,
+      "skills": [
+        "./"
+      ]
+    },
+    {
+      "name": "perf-review",
+      "description": "Use when the user invokes perf-review or asks to gather data for their own performance review or self-assessment.",
+      "source": "./perf-review",
       "strict": false,
       "skills": [
         "./"

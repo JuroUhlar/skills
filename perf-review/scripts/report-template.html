@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{color-scheme:light;--bg:#fafafa;--surface-1:#fff;--border:#e3e3e3;--text-primary:#191919;--text-secondary:#666;--series-1:#257de0;--series-prev:#a3a3a3;--good:#008a17;--bad:#c62828;--grid:#ececec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#111;--surface-1:#191919;--border:#333;--text-primary:#efefef;--text-secondary:#9c9c9c;--series-1:#338ced;--series-prev:#6b6b6b;--good:#0aac23;--bad:#eb6263;--grid:#2a2a2a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#111;--surface-1:#191919;--border:#333;--text-primary:#efefef;--text-secondary:#9c9c9c;--series-1:#338ced;--series-prev:#6b6b6b;--good:#0aac23;--bad:#eb6263;--grid:#2a2a2a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text-primary);font:15px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 64px}h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:36px 0 12px}
+.sub{color:var(--text-secondary);margin:0 0 8px}a{color:var(--series-1)}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-weight:600;color:var(--text-secondary);font-size:13px}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--good)}.down{color:var(--bad)}.flat{color:var(--text-secondary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}.grid.wide{grid-template-columns:repeat(auto-fit,minmax(460px,1fr))}@media (max-width:520px){.grid.wide{grid-template-columns:1fr}}
+.chart{position:relative;height:260px}.def{display:block;color:var(--text-secondary);font-size:13px;line-height:1.4;margin-top:2px;max-width:60ch}
+tr.src td{font-weight:600;padding-top:18px;border-bottom:2px solid var(--border)}
+td details summary{margin:4px 0 0;font-size:13px}tr.src details{font-weight:400}td details ul{margin:4px 0 0;padding-left:18px;font-size:13px;color:var(--text-secondary);max-width:75ch}td details li{margin:3px 0}
+.hl{padding:12px 0;border-bottom:1px solid var(--border)}.hl:last-child{border:0}.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;border:1px solid var(--border);color:var(--text-secondary);margin-right:6px}
+details summary{cursor:pointer;color:var(--text-secondary);margin:8px 0}.warn{color:var(--text-secondary);font-size:13px}
+</style></head><body><main id="app"></main>
+<script>
+const {m} = __DATA__;
+const info = (k) => m.info[k] || {name: k, def: '', better: 'neutral', more: []};
+const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content; };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (v) => v == null ? '–' : (Number.isInteger(v) ? v.toLocaleString() : v.toFixed(1));
+const cur = m.periods.current || {}, prev = m.periods.previous || {};
+const app = document.getElementById('app');
+app.append($(`<h1>Performance review</h1><p class="sub">${esc(cur.from)} to ${esc(cur.to)}, compared with ${esc(prev.from || 'n/a')} to ${esc(prev.to || 'n/a')}${m.github_org ? ` · GitHub org ${esc(m.github_org)}` : ''}</p>`));
+if (m.missing.length) app.append($(`<p class="warn">Not collected: ${m.missing.map(esc).join(', ')}</p>`));
+if (m.caveats.length) app.append($(`<details><summary>Data notes (${m.caveats.length})</summary><ul class="warn">${m.caveats.map(c => `<li>${esc(c)}</li>`).join('')}</ul></details>`));
+
+// Comparison table
+const SOURCE_NAMES = {github: 'GitHub', slack: 'Slack', jira: 'Jira', notion: 'Notion'};
+let rows = '';
+for (const [src, per] of Object.entries(m.sources)) {
+  const common = (m.source_info || {})[src] || [];
+  const commonHtml = common.length ? `<details><summary>What counts for all ${esc(SOURCE_NAMES[src] || src)} metrics</summary><ul>${common.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : '';
+  rows += `<tr class="src"><td colspan="4">${esc(SOURCE_NAMES[src] || src)}${commonHtml}</td></tr>`;
+  const keys = Object.keys((per.current || per.previous).metrics);
+  for (const k of keys) {
+    const c = per.current?.metrics[k], p = per.previous?.metrics[k];
+    let delta = '–', cls = 'flat';
+    if (c != null && p != null && p !== 0) {
+      const pct = (c - p) / Math.abs(p) * 100;
+      const better = info(k).better === 'lower' ? pct < 0 : pct > 0;
+      cls = Math.abs(pct) < 5 || info(k).better === 'neutral' ? 'flat' : better ? 'up' : 'down';
+      // "+237%" reads worse than "3.4×" for big jumps, so show increases of 2× or more as a multiple.
+      delta = c / p >= 2 ? `${(c / p).toFixed(1)}×` : `${pct > 0 ? '+' : ''}${pct.toFixed(0)}%`;
+    }
+    const {name, def, more = []} = info(k);
+    const what = more.length ? `<details><summary>What counts</summary><ul>${more.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : '';
+    rows += `<tr><td>${esc(name)}<span class="def">${esc(def)}</span>${what}</td><td class="num">${fmt(p)}</td><td class="num">${fmt(c)}</td><td class="num ${cls}">${delta}</td></tr>`;
+  }
+}
+app.append($(`<h2>Numbers</h2><div class="card"><table><thead><tr><th>Metric</th><th class="num">Previous</th><th class="num">Current</th><th class="num">Change</th></tr></thead><tbody>${rows}</tbody></table><p class="warn">Green means better, red worse. Gray means a small change, or a metric where either direction can be good.</p></div>`));
+
+// Charts: previous period in gray, current in blue, on one shared helper so both themes redraw together.
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const monthLabels = (from, n) => { const d = new Date(from + 'T00:00:00Z'); return Array.from({length: n}, (_, i) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + i, 1)).toLocaleString('en', {month: 'short', timeZone: 'UTC'})); };
+const charts = [];
+const pct = (v) => `${v < 1 && v > 0 ? v.toFixed(1) : Math.round(v)}%`;
+/** spec: {title, labels, prev, cur, horizontal?, share?: {prevCounts, curCounts, unit}, height?} */
+function chartCard(grid, spec) {
+  const box = $(`<div class="card"><strong>${esc(spec.title)}</strong><div class="chart" style="height:${spec.height || 260}px"><canvas aria-label="${esc(spec.title)}, previous and current period"></canvas></div></div>`);
+  spec.canvas = box.querySelector('canvas');
+  grid.append(box);
+  charts.push(spec);
+}
+function draw() {
+  for (const ch of charts) {
+    ch.obj?.destroy();
+    const ds = [];
+    if (ch.prev) ds.push({label: 'Previous', data: ch.prev, counts: ch.share?.prevCounts, backgroundColor: css('--series-prev'), borderRadius: 4, borderSkipped: 'start'});
+    ds.push({label: 'Current', data: ch.cur, counts: ch.share?.curCounts, backgroundColor: css('--series-1'), borderRadius: 4, borderSkipped: 'start'});
+    const valueAxis = {beginAtZero: true, grid: {color: css('--grid')}, ticks: {color: css('--text-secondary'), precision: 0, ...(ch.share ? {callback: (v) => `${v}%`} : {})}};
+    const catAxis = {grid: {display: false}, ticks: {color: css('--text-secondary'), autoSkip: !ch.horizontal}};
+    ch.obj = new Chart(ch.canvas, {type: 'bar', data: {labels: ch.labels, datasets: ds},
+      options: {maintainAspectRatio: false, animation: false, indexAxis: ch.horizontal ? 'y' : 'x', interaction: {mode: 'index', intersect: false},
+        plugins: {legend: {labels: {color: css('--text-primary'), boxWidth: 12}},
+          tooltip: ch.share ? {callbacks: {label: (c) => ` ${c.dataset.label}: ${pct(c.raw)} (${c.dataset.counts[c.dataIndex]} ${ch.share.unit})`}} : {}},
+        scales: ch.horizontal ? {x: valueAxis, y: catAxis} : {x: catAxis, y: valueAxis}}});
+  }
+}
+
+const series = [];
+for (const [src, per] of Object.entries(m.sources)) for (const k of Object.keys(per.current?.monthly || {})) series.push([src, k]);
+if (series.length) {
+  app.append($(`<h2>By month</h2><div class="grid" id="monthly"></div>`));
+  const grid = document.getElementById('monthly');
+  for (const [src, k] of series) {
+    const c = m.sources[src].current.monthly[k];
+    chartCard(grid, {title: info(k).name, labels: monthLabels(cur.from, c.length), prev: m.sources[src].previous?.monthly[k], cur: c});
+  }
+}
+
+const current = Object.values(m.sources).map(per => per.current).filter(Boolean);
+// Shares of each year's total, so a 3× busier year still compares. Top categories of either year, the rest folded into "Other".
+const orgPrefix = m.github_org ? `${m.github_org}/` : null;
+const short = (n) => orgPrefix && n.startsWith(orgPrefix) ? n.slice(orgPrefix.length) : n;
+function shareSpec(title, prevPairs, curPairs, unit, topN = 10) {
+  const total = (ps) => ps.reduce((n, [, c]) => n + c, 0);
+  const tp = total(prevPairs), tc = total(curPairs);
+  const pm = new Map(prevPairs), cm = new Map(curPairs);
+  const names = [...new Set([...cm.keys(), ...pm.keys()])];
+  const share = (map, t, n) => t ? (100 * (map.get(n) || 0)) / t : 0;
+  names.sort((a, b) => Math.max(share(cm, tc, b), share(pm, tp, b)) - Math.max(share(cm, tc, a), share(pm, tp, a)));
+  const shown = names.slice(0, topN), rest = names.slice(topN);
+  const restCount = (map) => rest.reduce((n, x) => n + (map.get(x) || 0), 0);
+  const labels = shown.map(short), prevCounts = shown.map(n => pm.get(n) || 0), curCounts = shown.map(n => cm.get(n) || 0);
+  if (rest.length) { labels.push(`Other (${rest.length})`); prevCounts.push(restCount(pm)); curCounts.push(restCount(cm)); }
+  const toShare = (counts, t) => counts.map(c => t ? (100 * c) / t : 0);
+  return {title, labels, prev: prevPairs.length ? toShare(prevCounts, tp) : null, cur: toShare(curCounts, tc),
+    share: {prevCounts, curCounts, unit}, horizontal: true, height: 70 + 34 * labels.length};
+}
+const UNITS = {'Repos (your merged PRs)': 'PRs', 'Repos (PRs you reviewed)': 'PRs', 'Authors you reviewed': 'PRs', 'Slack channels': 'messages', 'Jira tickets by type': 'tickets'};
+const breakdowns = [], histos = [];
+for (const per of Object.values(m.sources)) {
+  for (const title of new Set([...Object.keys(per.current?.lists || {}), ...Object.keys(per.previous?.lists || {})]))
+    breakdowns.push(shareSpec(title, per.previous?.lists?.[title] || [], per.current?.lists?.[title] || [], UNITS[title] || 'items'));
+  for (const [title, h] of Object.entries(per.current?.histograms || {})) {
+    const p = per.previous?.histograms?.[title];
+    const toShare = (counts) => { const t = counts.reduce((a, b) => a + b, 0); return counts.map(c => t ? (100 * c) / t : 0); };
+    histos.push({title, labels: h.buckets, prev: p ? toShare(p.counts) : null, cur: toShare(h.counts), share: {prevCounts: p?.counts || [], curCounts: h.counts, unit: 'PRs'}});
+  }
+}
+if (histos.length) {
+  app.append($(`<h2>Distributions</h2><p class="sub">Share of each year's PRs, so a busier year still compares.</p><div class="grid" id="histos"></div>`));
+  for (const h of histos) chartCard(document.getElementById('histos'), h);
+}
+if (breakdowns.length) {
+  app.append($(`<h2>Where the work went</h2><p class="sub">Share of each year's total. Hover a bar for counts.</p><div class="grid wide" id="breakdowns"></div>`));
+  for (const b of breakdowns) chartCard(document.getElementById('breakdowns'), b);
+}
+if (window.Chart) { draw(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw); }
+
+// Only http(s) links, so a crafted URL in a data file can't run script.
+const safeUrl = (u) => /^https?:\/\//i.test(String(u)) ? u : '#';
+const link = (url, text) => `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener">${esc(text)}</a>`;
+
+// Highlights
+if (m.highlights.length) {
+  app.append($(`<h2>Highlights</h2><div class="card">${m.highlights.map(h => `<div class="hl">${h.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}<strong>${esc(h.title)}</strong><div>${esc(h.why)}</div>${h.links.map(l => link(l.url, l.label || l.url)).join(' · ')}</div>`).join('')}</div>`));
+}
+
+// Detail lists: rows are {url, title, at, ...extra columns}, newest first.
+const detail = (summary, rows) => {
+  if (!rows.length) return '';
+  const extra = Object.keys(rows[0]).filter(k => !['url', 'title', 'at'].includes(k));
+  const isNum = (k) => typeof rows[0][k] === 'number';
+  const sorted = rows.slice().sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  return `<details><summary>${rows.length} ${esc(summary)}</summary><div class="card"><table><thead><tr><th>Title</th>${extra.map(k => `<th${isNum(k) ? ' class="num"' : ''}>${esc(k)}</th>`).join('')}<th>Date</th></tr></thead><tbody>${sorted.map(r => `<tr><td>${link(r.url, r.title)}</td>${extra.map(k => `<td${isNum(k) ? ' class="num"' : ''}>${esc(r[k])}</td>`).join('')}<td>${esc(String(r.at).slice(0, 10))}</td></tr>`).join('')}</tbody></table></div></details>`;
+};
+const details = current.flatMap(s => Object.entries(s.details || {}).map(([summary, rows]) => detail(summary, rows))).join('');
+if (details) app.append($(`<h2>Details</h2>${details}`));
+</script></body></html>
