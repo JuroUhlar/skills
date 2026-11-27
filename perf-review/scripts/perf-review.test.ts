@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { build, githubMetrics, jiraMetrics, monthly, render, reviewStart, histogram, mergeRepos } from "./build-report.ts";
 import { toRecord } from "./collect-github.ts";
 import { startedAt, toTicket } from "./collect-jira.ts";
+import { htmlToText, parseDiscussions } from "./collect-notion.ts";
 import { channelKind, threadOf } from "./collect-slack.ts";
 import { automatedReason, inPeriod, isBot, median, monthChunks, utcDay } from "./common.ts";
 import { batchItems } from "./prepare-batches.ts";
@@ -137,6 +138,23 @@ describe("bots and automation", () => {
     const p = open({ author: who("deploy-user"), reviews: [submitted("me", "2026-03-02T00:00:00Z")] });
     assert.equal(githubMetrics(gh([], [p])).metrics.reviewed_prs, 1);
     assert.equal(githubMetrics(gh([], [p]), new Set(["deploy-user"])).metrics.reviewed_prs, 0);
+  });
+});
+
+describe("notion comments", () => {
+  it("reads discussions, your comments, cursors, and omitted counts", () => {
+    const body = JSON.stringify({ text: `<discussions total-count="3" shown-count="2">
+<discussion id="discussion://p/b/d1" resolved="true" next-cursor="c1"><comment datetime="2026-03-01T10:00:00.000Z">Theirs</comment><comment datetime="2026-03-02T10:00:00.000Z" by-you="true">Mine &amp; <b>bold</b><br />next</comment></discussion>
+<discussion id="discussion://p/b/d2" resolved="false"><comment datetime="2026-03-03T10:00:00.000Z">x</comment></discussion></discussions>` });
+    const { discussions, omitted } = parseDiscussions(body);
+    assert.equal(omitted, 1);
+    assert.equal(discussions.length, 2);
+    assert.deepEqual(discussions[0]?.comments.map((c) => [c.byYou, c.text]), [[false, "Theirs"], [true, "Mine & bold\nnext"]]);
+    assert.equal(discussions[0]?.nextCursor, "c1");
+    assert.equal(discussions[0]?.resolved, true);
+  });
+  it("keeps typographic quotes as Notion stores them", () => {
+    assert.equal(htmlToText("it’s &quot;ok&quot;"), "it’s \"ok\"");
   });
 });
 

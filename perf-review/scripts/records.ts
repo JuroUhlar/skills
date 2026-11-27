@@ -147,6 +147,11 @@ export const slackFile = object({
 });
 export type SlackFile = Infer<typeof slackFile>;
 
+// Notion sign-in, written by notion-login.ts. Secret: never print or commit it.
+
+export const notionToken = object({ client_id: string, access_token: string, refresh_token: string, expires_at: number });
+export type NotionToken = Infer<typeof notionToken>;
+
 // Jira
 
 export const ticket = object({
@@ -178,16 +183,34 @@ export type JiraFile = Infer<typeof jiraFile>;
 
 // Notion (written by a sub-agent from MCP output, so optional fields are tolerated)
 
-const notionPage = object({ id: string, title: withDefault(string, () => ""), url: withDefault(string, () => "") });
+const notionPage = object({
+  id: string,
+  title: withDefault(string, () => ""),
+  url: withDefault(string, () => ""),
+  type: withDefault(string, () => "page"),
+  /** Search returns only a last-edited time, even for pages found by creation date. */
+  last_edited: withDefault(nullable(timestamp), () => null),
+  path: withDefault(string, () => ""),
+});
+const notionComment = object({
+  page_id: withDefault(string, () => ""),
+  page_title: withDefault(string, () => ""),
+  page_url: string,
+  discussion: withDefault(string, () => ""),
+  at: timestamp,
+  resolved: withDefault(boolean, () => false),
+  text: string,
+});
 
 export const notionFile = object({
   source: literal("notion"),
   user: string,
   period,
+  collected_at: withDefault(nullable(timestamp), () => null),
   method: nullable(string),
   pages_created: withDefault(array(notionPage), () => []),
   pages_edited: withDefault(array(notionPage), () => []),
-  comments: withDefault(array(object({ page_title: withDefault(string, () => ""), page_url: string, at: timestamp, text: string })), () => []),
+  comments: withDefault(array(notionComment), () => []),
 });
 export type NotionFile = Infer<typeof notionFile>;
 

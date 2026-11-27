@@ -28,6 +28,7 @@ Run the scripts for both periods in parallel, into `DIR/current/` and `DIR/previ
 node scripts/collect-github.ts --org ORG --from FROM --to TO --out DIR/current/github.json [--user LOGIN]
 SLACK_USER_TOKEN=... node scripts/collect-slack.ts --from FROM --to TO --out DIR/current/slack.json
 JIRA_SITE=... JIRA_EMAIL=... JIRA_API_TOKEN=... node scripts/collect-jira.ts --from FROM --to TO --out DIR/current/jira.json
+node scripts/collect-notion.ts --token TOKEN_FILE --from FROM --to TO --out DIR/current/notion.json
 ```
 
 - GitHub: `gh` auth, a few minutes per year.
@@ -35,9 +36,11 @@ JIRA_SITE=... JIRA_EMAIL=... JIRA_API_TOKEN=... node scripts/collect-jira.ts --f
   - `reviewed`: others' PRs the user reviewed in the period, merged or not.
 - Slack: a user token with `search:read` and `channels:read`, about 4 minutes per year. Keeps public channels, including archived ones. `skipped_non_public` counts the DMs and private-channel messages left out.
 - Jira: an API token from `https://id.atlassian.com/manage-profile/security/api-tokens`.
-  - `implemented`: Done tickets assigned to the user, resolved in the period.
+  - `implemented`: Done tickets assigned to the user, resolved in the period, with `started`: the first move into an In Progress status.
   - `reported`: tickets the user created in the period.
-- Notion has no script: its API sees only pages shared with an integration. Start one sub-agent per period with [references/collect-notion.md](references/collect-notion.md).
+- Notion: the public API sees only pages shared with an integration, so the script calls Notion's hosted MCP server (`mcp.notion.com`) as the user. Get `TOKEN_FILE` once with `node scripts/notion-login.ts --out TOKEN_FILE`; the user approves in the browser. Keep the file outside repos: it reads everything the user can.
+  - `pages_created`, `pages_edited`: workspace search, one month at a time.
+  - `comments`: the user's comments in the period, on those pages only.
 
 ## 3. Check the data
 
