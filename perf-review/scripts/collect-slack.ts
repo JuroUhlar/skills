@@ -7,7 +7,7 @@
 // Messages are kept by UTC date, matching the other sources.
 import { parseArgs } from "node:util";
 import { addDays, env, fetchJson, inPeriod, isMain, log, monthChunks, now, periodArgs, sleep, writeJson } from "./common.ts";
-import { isSlackTs, slackTs, toTimestamp, type ChannelKind, type Period, type SlackFile, type SlackMessage, type SlackTs } from "./records.ts";
+import { isSlackTs, slackAttachedFile, slackAttachment, slackTs, toTimestamp, type ChannelKind, type Period, type SlackFile, type SlackMessage, type SlackTs, withFiles } from "./records.ts";
 import { array, boolean, nullable, number, object, parse, string, withDefault, type Infer, type Schema } from "./schema.ts";
 
 const USAGE = "usage: SLACK_USER_TOKEN=... collect-slack.ts --from YYYY-MM-DD --to YYYY-MM-DD --out FILE";
@@ -39,7 +39,7 @@ const searchResponse = ok(object({
   messages: object({
     total: number,
     paging: object({ pages: number }),
-    matches: array(object({ ts: slackTs, text: withDefault(string, () => ""), permalink: withDefault(string, () => ""), channel })),
+    matches: array(object({ ts: slackTs, text: withDefault(string, () => ""), permalink: withDefault(string, () => ""), channel, files: withDefault(array(slackAttachedFile), () => []), attachments: withDefault(array(slackAttachment), () => []) })),
   }),
 }));
 const authResponse = ok(object({ user_id: string, user: string, team: string, url: string }));
@@ -124,7 +124,7 @@ async function main() {
           shared: x.channel.is_ext_shared,
           thread_ts: threadTs,
           permalink: x.permalink,
-          text: x.text,
+          text: withFiles(x.text, x.files, x.attachments),
         });
       }
       await sleep(1500); // search.messages allows about 20 calls a minute

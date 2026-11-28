@@ -11,9 +11,9 @@
   },
   "initiative": {
     "summary": "Moved work forward without being assigned it, including acting on a suggestion.",
-    "instructions": "Rate only the final message, written by the reviewed person. Do they move work forward without being assigned it? Acting on a suggestion, their own or a colleague's, counts as much as an idea of their own.",
+    "instructions": "Rate only the final message, written by the reviewed person. Do they move work forward without being assigned it? Acting on a suggestion, their own or a colleague's, counts as much as an idea of their own. Sharing a PR, doc, or update with no sign the work was unassigned is routine, not initiative.",
     "criteria": [
-      "Does only what was asked, or just discusses.",
+      "Does only what was asked, just discusses, or shares their own work, such as a PR link for review, with no sign it was unassigned.",
       "Offers to help, or suggests an improvement in passing.",
       "Acts without being assigned: picks up a suggestion and does it, volunteers for work, or starts a fix, tool, or cleanup.",
       "Carries unassigned work to a result others use, or drives a cross-team effort with a concrete plan."
@@ -41,9 +41,9 @@
   },
   "captain": {
     "summary": "Owned a call instead of asking permission or escalating, or left a colleague the call on their own work.",
-    "instructions": "Rate only the final message, written by the reviewed person. Do they lead with intent: decide and act on what is theirs to decide, rather than ask permission or escalate by default? Or do they leave a colleague's own implementation choices to that colleague instead of deciding for them?",
+    "instructions": "Rate only the final message, written by the reviewed person. Do they lead with intent: decide and act on what is theirs to decide, rather than ask permission or escalate by default? Or do they leave a colleague's own implementation choices to that colleague instead of deciding for them? A call is a choice between options; sharing a PR, approving one, or reporting status is not a call.",
     "criteria": [
-      "No ownership signal, or asks permission or escalates a choice that was theirs to make.",
+      "No ownership signal, such as sharing a link, approving, or reporting status; or asks permission or escalates a choice that was theirs to make.",
       "Makes a small call within their own work and says so, or lets a colleague make a small call on theirs.",
       "Decides and acts on their own authority, informing others instead of asking; or tells a colleague a choice in their own work is theirs to make.",
       "Owns an ambiguous or cross-team call and drives it to a result; or coaches a colleague to own a decision, giving context rather than the answer."

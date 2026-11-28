@@ -177,6 +177,25 @@ export function slackNames(threads: SlackThreadsFile | null): Map<string, string
   return names;
 }
 
+/** A file attached to a Slack message, as conversations.replies and search.messages return it. */
+export const slackAttachedFile = object({ name: withDefault(string, () => ""), title: withDefault(string, () => ""), pretty_type: withDefault(string, () => "") });
+export type SlackAttachedFile = Infer<typeof slackAttachedFile>;
+
+/** A rich attachment's plain-text summary, such as "shared a GIF" for a GIF from the picker. */
+export const slackAttachment = object({ fallback: withDefault(string, () => "") });
+export type SlackAttachment = Infer<typeof slackAttachment>;
+
+/** The message text with a label per attached file, e.g. `(PNG: image.png)`, so a file-only message isn't blank.
+ * A message still blank gets its attachments' summaries, e.g. `(shared a GIF)`; link previews on a message with text are left out. */
+export function withFiles(text: string, files: readonly SlackAttachedFile[], attachments: readonly SlackAttachment[] = []): string {
+  const labels = files.map((f) => {
+    const names = [...new Set([f.title, f.name].filter(Boolean))].join(", ");
+    return `(${[f.pretty_type || "file", names].filter(Boolean).join(": ")})`;
+  });
+  const withLabels = [text.trim(), ...labels].filter(Boolean).join(" ");
+  return withLabels || attachments.map((a) => a.fallback.trim()).filter(Boolean).map((f) => `(${f})`).join(" ");
+}
+
 /** Slack's markup as plain text: `<https://x|label>` is `label (https://x)`, `<@U1>` is `@name`, a group's `<@S1>` is `@team`, `<#C1|eng>` is `#eng`,
  * `<!here>` is `@here`, a `<!date^…|fallback>` is its fallback text, and `&amp;` `&lt;` `&gt;` are unescaped. */
 export function plainSlack(text: string, names: ReadonlyMap<string, string>): string {

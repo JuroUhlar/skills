@@ -4,14 +4,14 @@
 //
 // With DIR/scores.jsonl (score-jev.ts), keeps only items in the top --top percent of some criterion that also
 // score at least --min-score on it, strongest first, with their scores. Without it, keeps every item of at least --min-chars.
-// Each item comes with its thread context. Writes DIR/batches/NN.txt.
+// Each item comes with its thread context; a thread's picked items stay together, as one effort. Writes DIR/batches/NN.txt.
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { fatal, isMain, log } from "./common.ts";
 import { loadItems, readScores, renderItem, STANDOUT_FLOOR, STANDOUT_PERCENT, standouts, type Item } from "./items.ts";
 
-type Picked = { item: Item; scores: Record<string, number> | null; standsOut: string[] };
+export type Picked = { item: Item; scores: Record<string, number> | null; standsOut: string[] };
 
 export function pickItems(dir: string, opts: { before: number; top: number; minScore: number; minChars: number }): { picked: Picked[]; person: string; scored: boolean } {
   const { items, person } = loadItems(dir, opts.before);
@@ -32,6 +32,28 @@ export function pickItems(dir: string, opts: { before: number; top: number; minS
   return { picked, person, scored: true };
 }
 
+/** Picked items as batch texts of about `size` items each. Each thread starts with a `===` line; its items stay together, in time
+ * order, placed where its strongest item ranks, and each earlier message is shown once. A thread is never split across batches, so only a thread larger than `size` makes a batch larger. */
+export function batchTexts(picked: readonly Picked[], person: string, size: number): string[] {
+  const threads = new Map<string, Picked[]>();
+  for (const p of picked) threads.set(p.item.thread, [...(threads.get(p.item.thread) ?? []), p]);
+  const batches: string[][] = [];
+  let count = 0;
+  for (const group of threads.values()) {
+    group.sort((a, b) => a.item.at.localeCompare(b.item.at));
+    const header = group.length > 1 ? `=== Thread with ${group.length} messages by ${person}: judge them together as one effort\n\n` : "=== Single message\n\n";
+    const shown = new Set<string>();
+    const body = group.map(({ item, scores, standsOut }) => {
+      const line = scores ? `Scores: ${Object.entries(scores).map(([k, v]) => `${k} ${v.toFixed(1)}`).join(", ")}; stands out on ${standsOut.join(", ")}\n` : "";
+      return `--- ${item.url}\n${line}${renderItem(item, person, shown)}\n`;
+    }).join("\n");
+    if (!batches.length || (count > 0 && count + group.length > size)) { batches.push([]); count = 0; }
+    batches[batches.length - 1]?.push(header + body);
+    count += group.length;
+  }
+  return batches.map((b) => b.join("\n"));
+}
+
 function main() {
   const { values, positionals } = parseArgs({
     options: { size: { type: "string", default: "150" }, context: { type: "string", default: "3" }, top: { type: "string", default: String(STANDOUT_PERCENT) }, "min-score": { type: "string", default: String(STANDOUT_FLOOR) }, "min-chars": { type: "string", default: "40" } },
@@ -47,15 +69,9 @@ function main() {
   const out = join(dir, "batches");
   mkdirSync(out, { recursive: true });
   for (const f of readdirSync(out)) rmSync(join(out, f));
-  let n = 0;
-  for (let i = 0; i < picked.length; i += size) {
-    n++;
-    const body = picked.slice(i, i + size).map(({ item, scores, standsOut }) => {
-      const line = scores ? `Scores: ${Object.entries(scores).map(([k, v]) => `${k} ${v.toFixed(1)}`).join(", ")}; stands out on ${standsOut.join(", ")}\n` : "";
-      return `--- ${item.url}\n${line}${renderItem(item, person)}\n`;
-    }).join("\n");
-    writeFileSync(join(out, `${String(n).padStart(2, "0")}.txt`), body);
-  }
+  const texts = batchTexts(picked, person, size);
+  texts.forEach((text, i) => writeFileSync(join(out, `${String(i + 1).padStart(2, "0")}.txt`), text));
+  const n = texts.length;
   log(`wrote ${n} batches of up to ${size} to ${out} from ${picked.length} items${scored ? ` in the top ${top}% of some criterion` : ""}`);
 }
 

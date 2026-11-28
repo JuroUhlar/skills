@@ -9,7 +9,7 @@ import { existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { env, fatal, isMain, log, now, readJson, writeJson } from "./common.ts";
 import { call, ok } from "./collect-slack.ts";
-import { slackFile, slackThreadsFile, slackTs, threadKey, type SlackThreadsFile, type ThreadMessage } from "./records.ts";
+import { slackAttachedFile, slackAttachment, slackFile, slackThreadsFile, slackTs, threadKey, type SlackThreadsFile, type ThreadMessage, withFiles } from "./records.ts";
 import { array, boolean, nullable, number, object, string, withDefault } from "./schema.ts";
 
 const USAGE = "usage: SLACK_USER_TOKEN=... collect-slack-threads.ts --in SLACK_JSON --out THREADS_JSON";
@@ -30,6 +30,7 @@ const repliesPage = object({
   ok: boolean,
   error: withDefault(nullable(string), () => null),
   messages: withDefault(array(object({ ts: slackTs, user: withDefault(nullable(string), () => null), username: withDefault(nullable(string), () => null), text: withDefault(string, () => ""),
+    files: withDefault(array(slackAttachedFile), () => []), attachments: withDefault(array(slackAttachment), () => []),
     reactions: withDefault(array(object({ name: string, count: number, users: withDefault(array(string), () => []) })), () => []) })), () => []),
   has_more: withDefault(boolean, () => false),
   response_metadata: nextCursor,
@@ -61,7 +62,7 @@ async function thread(token: string, channel: string, ts: string, names: Map<str
     }
     for (const m of page.messages) {
       const reactions = Object.fromEntries(m.reactions.map((r) => [r.name, r.count - (r.users.includes(me) ? 1 : 0)] as const).filter(([, n]) => n > 0));
-      out.push({ ts: m.ts, user_id: m.user, name: (m.user && names.get(m.user)) || m.username || "unknown", text: m.text, reactions });
+      out.push({ ts: m.ts, user_id: m.user, name: (m.user && names.get(m.user)) || m.username || "unknown", text: withFiles(m.text, m.files, m.attachments), reactions });
     }
     cursor = page.has_more ? (page.response_metadata?.next_cursor ?? "") : "";
   } while (cursor);

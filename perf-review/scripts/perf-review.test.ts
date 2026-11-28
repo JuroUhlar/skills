@@ -14,10 +14,10 @@ import { loadItems, readCriteria, readScores, renderItem, standouts } from "./it
 import { threadError } from "./collect-slack-threads.ts";
 import { channelKind, threadOf } from "./collect-slack.ts";
 import { automatedReason, inPeriod, isBot, median, monthChunks, utcDay } from "./common.ts";
-import { pickItems } from "./prepare-batches.ts";
+import { batchTexts, pickItems } from "./prepare-batches.ts";
 import { saveToken } from "./notion-login.ts";
 import {
-  day, highlights, isDay, plainSlack, isTimestamp, period, review, type Day, type GithubFile, type MergedPr, type Pr, type Review,
+  day, highlights, isDay, plainSlack, withFiles, isTimestamp, toTimestamp, period, review, type Day, type GithubFile, type MergedPr, type Pr, type Review,
   type Ticket, type Timestamp,
 } from "./records.ts";
 import { array, literal, nullable, number, object, parse, ParseError, string, withDefault } from "./schema.ts";
@@ -174,6 +174,19 @@ describe("saveToken", () => {
     writeFileSync(path, "{}", { mode: 0o644 });
     saveToken(path, { client_id: "c", access_token: "a", refresh_token: "r", expires_at: 1 });
     assert.equal(statSync(path).mode & 0o777, 0o600);
+  });
+});
+
+describe("withFiles", () => {
+  it("labels attached files so a file-only message isn't blank", () => {
+    assert.equal(withFiles("", [{ name: "image.png", title: "image.png", pretty_type: "PNG" }]), "(PNG: image.png)");
+    assert.equal(withFiles("look", [{ name: "a.gif", title: "Party", pretty_type: "GIF" }, { name: "", title: "", pretty_type: "" }]), "look (GIF: Party, a.gif) (file)");
+    assert.equal(withFiles("plain", []), "plain");
+  });
+  it("falls back to attachment summaries only when the message is otherwise blank", () => {
+    assert.equal(withFiles("", [], [{ fallback: "shared a GIF" }]), "(shared a GIF)");
+    assert.equal(withFiles(" \n", [], [{ fallback: " shared a GIF " }]), "(shared a GIF)");
+    assert.equal(withFiles("see link", [], [{ fallback: "Example page" }]), "see link");
   });
 });
 
@@ -419,6 +432,41 @@ describe("files and report", () => {
     assert.ok(first);
     assert.deepEqual(first.context.map((c) => `${c.role}:${c.name}`), ["thread start:Ann", "earlier reply:Cy", "earlier reply:Di"]);
     assert.match(renderItem(first, "me"), /Thread start, by Ann:\nmsg 1\.0[\s\S]*Final message, by me \(the one to rate\):\nmy answer$/);
+  });
+  it("calls the person by their thread display name, not their Slack handle", () => {
+    const base = dir();
+    write(join(base, "current", "slack.json"), slack([message("2.0", "2026-02-01T10:00:00Z", "C1", "1.0", "mine")]));
+    write(join(base, "current", "slack-threads.json"), { source: "slack-threads", user_id: "U", collected_at: "2026-12-31T00:00:00Z",
+      threads: { "C1/1.0": [{ ts: "1.0", user_id: "U", name: "Display Me", text: "start" }, { ts: "2.0", user_id: "U", name: "Display Me", text: "mine" }] } });
+    assert.equal(loadItems(base).person, "Display Me");
+  });
+  it("keeps a thread's picked items together, once per thread, and never splits a thread across batches", () => {
+    const item = (id: string, thread: string, at: string, earlier: string[] = []) => ({ id, source: "slack" as const, at: toTimestamp(new Date(at)), where: "#C1 (thread reply)", url: `https://x/${id}`,
+      thread, key: id, text: `text ${id}`, reactions: {},
+      context: [{ key: `${thread}-start`, name: "Ann", text: `start of ${thread}`, role: "thread start" as const },
+        ...earlier.map((e) => ({ key: e, name: "me", text: `edited copy of ${e}`, role: "earlier reply" as const }))] });
+    const pick = (i: ReturnType<typeof item>) => ({ item: i, scores: { insight: 2 }, standsOut: ["insight"] });
+    const picked = [pick(item("b", "T1", "2026-02-02T00:00:00Z")), pick(item("c", "T2", "2026-02-03T00:00:00Z")), pick(item("a", "T1", "2026-02-01T00:00:00Z"))];
+    const [one, two, ...rest] = batchTexts(picked, "me", 1);
+    assert.equal(rest.length, 0);
+    assert.match(one ?? "", /^=== Thread with 2 messages by me[\s\S]*--- https:\/\/x\/a[\s\S]*--- https:\/\/x\/b/);
+    assert.equal((one ?? "").split("start of T1").length - 1, 1);
+    assert.match(two ?? "", /^=== Single message\n\n--- https:\/\/x\/c/);
+  });
+  it("shows a thread's earlier message once by identity, even if its copy's text differs, and keeps distinct look-alikes", () => {
+    const pick = (i: ReturnType<typeof item>) => ({ item: i, scores: { insight: 2 }, standsOut: ["insight"] });
+    const item = (id: string, at: string, context: { key: string; text: string }[]) => ({ id, source: "slack" as const, at: toTimestamp(new Date(at)), where: "#C1", url: `https://x/${id}`,
+      thread: "T", key: id, text: `text ${id}`, reactions: {}, context: context.map((c) => ({ ...c, name: "Bob", role: "earlier reply" as const })) });
+    const [text] = batchTexts([pick(item("b", "2026-02-02T00:00:00Z", [{ key: "a", text: "edited a" }, { key: "x", text: "(PNG: image.png)" }, { key: "y", text: "(PNG: image.png)" }])),
+      pick(item("a", "2026-02-01T00:00:00Z", []))], "me", 10);
+    assert.equal((text ?? "").includes("edited a"), false);
+    assert.equal((text ?? "").split("(PNG: image.png)").length - 1, 2);
+  });
+  it("starts a new batch before a thread that would overflow it", () => {
+    const pick = (id: string, thread: string) => ({ item: { id, source: "slack" as const, at: toTimestamp(new Date("2026-02-01T00:00:00Z")), where: "#C1", url: `https://x/${id}`,
+      thread, key: id, text: id, reactions: {}, context: [] }, scores: null, standsOut: [] });
+    const picked = [pick("1", "A"), pick("2", "B"), pick("3", "C"), pick("4", "D"), ...["5", "6", "7"].map((id) => pick(id, "E")), pick("8", "F")];
+    assert.deepEqual(batchTexts(picked, "me", 5).map((b) => b.split("--- https://x/").length - 1), [4, 4]);
   });
   it("picks long items by date without scores, and strong items first with them", () => {
     const base = dir();
