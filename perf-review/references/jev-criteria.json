@@ -1,0 +1,47 @@
+{
+  "insight": {
+    "instructions": "Rate only the final message, written by the reviewed person, in the light of the earlier messages. How much insight does it show: a root cause, a risk, a flaw, or a non-obvious idea?",
+    "criteria": [
+      "Routine: status, logistics, thanks, a link, or a plain question.",
+      "A useful but expected observation or answer anyone on the team would give.",
+      "Finds a cause, risk, or idea the others in the conversation had not seen.",
+      "A finding that changes the plan or prevents serious harm, with the reasoning shown."
+    ]
+  },
+  "initiative": {
+    "instructions": "Rate only the final message, written by the reviewed person. Do they move work forward without being assigned it? Acting on a suggestion, their own or a colleague's, counts as much as an idea of their own.",
+    "criteria": [
+      "Does only what was asked, or just discusses.",
+      "Offers to help, or suggests an improvement in passing.",
+      "Acts without being assigned: picks up a suggestion and does it, volunteers for work, or starts a fix, tool, or cleanup.",
+      "Carries unassigned work to a result others use, or drives a cross-team effort with a concrete plan."
+    ]
+  },
+  "helping": {
+    "instructions": "Rate only the final message, written by the reviewed person. How much does it unblock or teach someone else? Colleagues' reactions, if listed, show how it landed: thanks, +1, or celebration emoji are evidence it helped.",
+    "criteria": [
+      "Doesn't help anyone else.",
+      "A short pointer, link, or yes/no answer to someone's question.",
+      "A clear explanation or fix that unblocks someone.",
+      "Teaches something reusable, or solves a hard problem for the entire team."
+    ]
+  },
+  "design": {
+    "instructions": "Rate only the final message, written by the reviewed person. How well does it shape a technical solution: architecture, data model, interfaces, or approach, with tradeoffs and long-term cost? Who makes the call doesn't matter here, only the quality of the technical thinking.",
+    "criteria": [
+      "No technical design content.",
+      "Picks or describes an approach without weighing alternatives.",
+      "Compares approaches and names a concrete tradeoff, such as consistency, migration cost, coupling, or maintenance.",
+      "Lays out a design or architecture with options, evidence, and long-term consequences, settling a contested technical question."
+    ]
+  },
+  "captain": {
+    "instructions": "Rate only the final message, written by the reviewed person. Do they lead with intent: decide and act on what is theirs to decide, rather than ask permission or escalate by default? Or do they leave a colleague's own implementation choices to that colleague instead of deciding for them?",
+    "criteria": [
+      "No ownership signal, or asks permission or escalates a choice that was theirs to make.",
+      "Makes a small call within their own work and says so.",
+      "Decides and acts on their own authority, informing others instead of asking; or tells a colleague a choice in their own work is theirs to make.",
+      "Owns an ambiguous or cross-team call and drives it to a result; or coaches a colleague to own a decision, giving context rather than the answer."
+    ]
+  }
+}

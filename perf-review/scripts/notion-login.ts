@@ -1,6 +1,6 @@
 // Sign in to Notion's hosted MCP server once and save the token for collect-notion.ts.
 //
-//   node notion-login.ts --out TOKEN_FILE
+//   node notion-login.ts [--out TOKEN_FILE]   (defaults to NOTION_TOKEN_FILE from the environment or .env.local)
 //
 // Opens the browser for Notion's consent page (OAuth with PKCE, a one-time code check that needs no
 // client secret), catches the redirect on a local port, and writes the tokens to TOKEN_FILE with mode 600.
@@ -42,8 +42,8 @@ export function saveToken(path: string, t: NotionToken): void {
 
 async function main() {
   const { values } = parseArgs({ options: { out: { type: "string" } } });
-  if (!values.out) fatal("usage: notion-login.ts --out TOKEN_FILE");
-  const out = values.out;
+  const out = values.out ?? process.env.NOTION_TOKEN_FILE;
+  if (!out) fatal("usage: notion-login.ts --out TOKEN_FILE, or set NOTION_TOKEN_FILE");
 
   const server = createServer();
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));

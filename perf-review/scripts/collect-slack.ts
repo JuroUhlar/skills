@@ -16,7 +16,7 @@ const MAX_RATE_LIMIT_WAITS = 10;
 const ARCHIVED_PER_QUERY = 20; // several in:#channel filters in one query are ORed
 
 const status = object({ ok: boolean, error: nullable(string) });
-const ok = <T>(s: Schema<T>): Schema<T> => (v, p) => {
+export const ok = <T>(s: Schema<T>): Schema<T> => (v, p) => {
   const st = status(v, p);
   if (!st.ok) throw new Error(`Slack ${p} failed: ${st.error ?? "unknown error"}`);
   return s(v, p);
@@ -63,7 +63,7 @@ export function channelKind(ch: Channel): ChannelKind {
   return ch.is_private || ch.is_group ? "private_channel" : "unknown";
 }
 
-async function call<T>(token: string, method: string, params: Record<string, string>, schema: Schema<T>): Promise<T> {
+export async function call<T>(token: string, method: string, params: Record<string, string>, schema: Schema<T>): Promise<T> {
   for (let waits = 0; ; waits++) {
     const raw = await fetchJson(`https://slack.com/api/${method}?${new URLSearchParams(params)}`, { headers: { Authorization: `Bearer ${token}` } });
     if (parse(status, raw, method).error === "ratelimited" && waits < MAX_RATE_LIMIT_WAITS) {

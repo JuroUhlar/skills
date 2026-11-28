@@ -6,15 +6,16 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { build, githubMetrics, jiraMetrics, monthly, render, reviewStart, histogram, mergeRepos } from "./build-report.ts";
+import { reactionGroup, build, githubMetrics, jiraMetrics, monthly, render, reviewStart, histogram, mergeRepos, summarizeScores } from "./build-report.ts";
 import { toRecord } from "./collect-github.ts";
 import { startedAt, toTicket } from "./collect-jira.ts";
 import { htmlToText, parseDiscussions } from "./collect-notion.ts";
+import { loadItems, renderItem, standouts } from "./items.ts";
 import { channelKind, threadOf } from "./collect-slack.ts";
 import { automatedReason, inPeriod, isBot, median, monthChunks, utcDay } from "./common.ts";
-import { batchItems } from "./prepare-batches.ts";
+import { pickItems } from "./prepare-batches.ts";
 import {
-  day, highlights, isDay, isTimestamp, period, review, type Day, type GithubFile, type MergedPr, type Pr, type Review,
+  day, highlights, isDay, plainSlack, isTimestamp, period, review, type Day, type GithubFile, type MergedPr, type Pr, type Review,
   type Ticket, type Timestamp,
 } from "./records.ts";
 import { array, literal, nullable, number, object, parse, ParseError, string, withDefault } from "./schema.ts";
@@ -155,6 +156,28 @@ describe("notion comments", () => {
   });
   it("keeps typographic quotes as Notion stores them", () => {
     assert.equal(htmlToText("it’s &quot;ok&quot;"), "it’s \"ok\"");
+  });
+});
+
+describe("plainSlack", () => {
+  it("turns Slack markup into the text people see", () => {
+    const names = new Map([["U1", "Ana"]]);
+    assert.equal(plainSlack("<@U1> see <https://x.io/a|the doc> and <https://x.io/b> in <#C1|eng>, <!here> &amp; <@U9> <@S1>", names),
+      "@Ana see the doc (https://x.io/a) and https://x.io/b in #eng, @here & @someone @team");
+  });
+});
+
+describe("jev scores", () => {
+  it("ranks items per criterion and counts each criterion's top 5% as standouts", () => {
+    const line = (url: string, insight: number, humor: number) => ({ id: url, source: "slack" as const, at: t("2026-03-01T00:00:00Z"), where: "#c", url, text: "x", model: "jev", scores: { insight, humor }, confidence: { insight: 1, humor: 1 } });
+    const s = summarizeScores([line("a", 0.2, 2.1), line("b", 2.4, 0), line("c", 2, 0.1)], 2);
+    assert.deepEqual(s.top.insight?.map((i) => i.url), ["b", "c"]);
+    assert.deepEqual(s.strong, { insight: 1, humor: 1 });
+  });
+  it("picks each criterion's top percent, above a floor", () => {
+    const line = (id: string, insight: number, captain: number) => ({ id, source: "slack" as const, at: t("2026-03-01T00:00:00Z"), where: "#c", url: id, text: "x", model: "jev", scores: { insight, captain }, confidence: {} });
+    const lines = [line("a", 2.5, 0.1), line("b", 2.0, 0.2), line("c", 0.3, 1.4), line("d", 0.2, 0.9)];
+    assert.deepEqual([...standouts(lines, 50, 1)], [["a", ["insight"]], ["b", ["insight"]], ["c", ["captain"]]]);
   });
 });
 
@@ -327,17 +350,51 @@ describe("files and report", () => {
       message("3.1", "2026-05-01T11:00:00Z", "C2", "0.5"), message("4.1", "2027-01-01T00:30:00Z", "C2", "0.5"),
     ]));
     const s = build(base).sources.slack?.current;
-    assert.deepEqual(s?.metrics, { messages: 3, threads_started_per_100_messages: 33.3, active_channels: 2 });
+    assert.deepEqual(s?.metrics, { messages: 3, threads_started_per_100_messages: 33.3, active_channels: 2, appreciation_per_100_messages: null, laughs_per_100_messages: null });
     assert.deepEqual(s?.monthly?.messages?.slice(0, 5), [0, 2, 0, 0, 1]);
   });
-  it("batches long Slack messages and Notion comments by date", () => {
+  it("groups reactions into laughs, appreciation, and the rest", () => {
+    const groups = (names: string[]) => names.map(reactionGroup);
+    assert.deepEqual(groups(["joy", "rolling_on_the_floor_laughing", "laughing", "sweat_smile"]), ["laugh", "laugh", "laugh", "laugh"]);
+    assert.deepEqual(groups(["thankyou", "raised_hands", "+1", "fireball", "tada", "party_blob", "extreme-teamwork", "gratitude-thank-you", "100"]), Array(9).fill("appreciation"));
+    assert.deepEqual(groups(["eyes", "white_check_mark", "heavy_plus_sign", "one", "b", "ack-2", "very-sadge", "lgtm"]), Array(8).fill("other"));
+  });
+  it("counts reactions others left on the user's messages", () => {
+    const base = dir();
+    write(join(base, "current", "slack.json"), slack([message("1.0", "2026-02-01T10:00:00Z", "C1", null), message("2.0", "2026-02-01T11:00:00Z", "C1", null)]));
+    write(join(base, "current", "slack-threads.json"), { source: "slack-threads", user_id: "U", collected_at: "2026-12-31T00:00:00Z",
+      threads: { "C1/1.0": [{ ts: "1.0", user_id: "U", name: "me", text: "x", reactions: { joy: 3, "+1": 1, "+1::skin-tone-2": 1, eyes: 2 } }], "C1/2.0": [{ ts: "2.0", user_id: "U", name: "me", text: "y" }] } });
+    const s = build(base).sources.slack?.current;
+    assert.equal(s?.metrics.laughs_per_100_messages, 150);
+    assert.equal(s?.metrics.appreciation_per_100_messages, 100);
+    assert.deepEqual(s?.lists?.["Reactions you received"], [[":joy:", 3], [":+1:", 2], [":eyes:", 2]]);
+    assert.match(renderItem(loadItems(base).items[0] ?? assert.fail(), "me"), /Colleagues reacted with: :joy: ×3, :\+1: ×2, :eyes: ×2$/);
+  });
+  it("gives a thread reply the thread start and the replies just above it", () => {
+    const base = dir();
+    write(join(base, "current", "slack.json"), slack([message("5.0", "2026-02-01T10:00:00Z", "C1", "1.0", "my answer")]));
+    const line = (ts: string, name: string) => ({ ts, user_id: null, name, text: `msg ${ts}` });
+    write(join(base, "current", "slack-threads.json"), { source: "slack-threads", user_id: "U", collected_at: "2026-12-31T00:00:00Z",
+      threads: { "C1/1.0": [line("1.0", "Ann"), line("2.0", "Bob"), line("3.0", "Cy"), line("4.0", "Di"), line("5.0", "me"), line("6.0", "Ed")] } });
+    const { items, missingThreads } = loadItems(base, 2);
+    assert.equal(missingThreads, 0);
+    const first = items[0];
+    assert.ok(first);
+    assert.deepEqual(first.context.map((c) => `${c.role}:${c.name}`), ["thread start:Ann", "earlier reply:Cy", "earlier reply:Di"]);
+    assert.match(renderItem(first, "me"), /Thread start, by Ann:\nmsg 1\.0[\s\S]*Final message, by me \(the one to rate\):\nmy answer$/);
+  });
+  it("picks long items by date without scores, and strong items first with them", () => {
     const base = dir();
     write(join(base, "current", "slack.json"), slack([message("2.1", "2026-02-02T00:00:00Z", "C1", null), message("1.1", "2026-02-01T00:00:00Z", "C1", null, "ok")]));
     write(join(base, "current", "notion.json"), { source: "notion", user: "me", period: YEAR, method: null,
       comments: [{ page_title: "Plan", page_url: "https://notion.so/p", at: "2026-01-15T00:00:00Z", text: "a Notion comment long enough to keep" }] });
-    assert.deepEqual(batchItems(base, 20).map((i) => i.where), ['notion comment on "Plan"', "slack #C1"]);
+    const opts = { before: 3, top: 50, minScore: 1.5, minChars: 20 };
+    assert.deepEqual(pickItems(base, opts).picked.map((p) => p.item.where), ['Notion comment on "Plan"', "#C1"]);
     write(join(base, "current", "slack.json"), slack([message("2.1", "2026-02-02T00:00:00Z", "C1", "1.1")]));
-    assert.deepEqual(batchItems(base, 20).map((i) => i.where), ['notion comment on "Plan"', "slack #C1 (thread reply)"]);
+    assert.deepEqual(pickItems(base, opts).picked.map((p) => p.item.where), ['Notion comment on "Plan"', "#C1 (thread reply)"]);
+    const score = (id: string, insight: number) => JSON.stringify({ id, source: "slack", at: "2026-02-02T00:00:00Z", where: "#C1", url: id, text: "x", model: "jev", scores: { insight }, confidence: { insight: 1 } });
+    writeFileSync(join(base, "scores.jsonl"), `${score("https://x.slack.com/p", 2.2)}\n${score("https://notion.so/p@2026-01-15T00:00:00Z", 0.4)}\n`);
+    assert.deepEqual(pickItems(base, opts).picked.map((p) => p.item.where), ["#C1 (thread reply)"]);
     assert.deepEqual(build(base).sources.notion?.current?.metrics, { notion_pages_created: 0, notion_comments: 1 });
   });
   it("builds from files, flags period mismatches, and escapes markup in data", () => {

@@ -147,6 +147,64 @@ export const slackFile = object({
 });
 export type SlackFile = Infer<typeof slackFile>;
 
+/** Every thread the user posted in, and each top-level message as a one-message thread, written by collect-slack-threads.ts.
+ * Gives replies their context and every message its reactions, without refetching. */
+export const threadMessage = object({
+  ts: slackTs,
+  user_id: nullable(string),
+  name: string,
+  text: string,
+  /** Emoji name to how many people reacted with it. */
+  reactions: withDefault<Record<string, number>>(record(number), () => ({})),
+});
+export type ThreadMessage = Infer<typeof threadMessage>;
+export const slackThreadsFile = object({
+  source: literal("slack-threads"),
+  user_id: string,
+  collected_at: timestamp,
+  /** Keyed by threadKey(channel_id, thread_ts). */
+  threads: record(array(threadMessage)),
+  /** Threads Slack wouldn't return, with its error, e.g. a deleted thread. */
+  missing: withDefault<Record<string, string>>(record(string), () => ({})),
+});
+export type SlackThreadsFile = Infer<typeof slackThreadsFile>;
+export const threadKey = (channelId: string, threadTs: string) => `${channelId}/${threadTs}`;
+
+/** User id to display name, from everyone who posted in the collected threads. */
+export function slackNames(threads: SlackThreadsFile | null): Map<string, string> {
+  const names = new Map<string, string>();
+  for (const thread of Object.values(threads?.threads ?? {})) for (const m of thread) if (m.user_id) names.set(m.user_id, m.name);
+  return names;
+}
+
+/** Slack's markup as plain text: `<https://x|label>` is `label (https://x)`, `<@U1>` is `@name`, a group's `<@S1>` is `@team`, `<#C1|eng>` is `#eng`,
+ * `<!here>` is `@here`, and `&amp;` `&lt;` `&gt;` are unescaped. */
+export function plainSlack(text: string, names: ReadonlyMap<string, string>): string {
+  return text
+    .replace(/<@S[A-Z0-9]+>/g, "@team")
+    .replace(/<@([UW][A-Z0-9]+)(?:\|([^>]*))?>/g, (_, id: string, label?: string) => `@${names.get(id) ?? label ?? "someone"}`)
+    .replace(/<#[A-Z0-9]+\|([^>]*)>/g, "#$1")
+    .replace(/<#([A-Z0-9]+)>/g, "#channel")
+    .replace(/<!subteam\^[A-Z0-9]+(?:\|([^>]*))?>/g, (_, label?: string) => label ?? "@team")
+    .replace(/<!([a-z]+)(?:\|[^>]*)?>/g, "@$1")
+    .replace(/<((?:https?|mailto):[^|>]+)\|([^>]+)>/g, (_, url: string, label: string) => (label === url.replace(/^mailto:/, "") ? label : `${label} (${url})`))
+    .replace(/<((?:https?|mailto):[^>]+)>/g, "$1")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
+
+/** Reactions others left on one of the user's messages, or null when its thread wasn't collected.
+ * Skin-tone variants count as the base emoji: `+1::skin-tone-2` is `+1`. */
+export function reactionsOn(m: SlackMessage, threads: SlackThreadsFile | null): Record<string, number> | null {
+  const thread = threads?.threads[threadKey(m.channel_id, m.thread_ts ?? m.ts)];
+  if (thread === undefined) return null;
+  const merged: Record<string, number> = {};
+  for (const [name, n] of Object.entries(thread.find((t) => t.ts === m.ts)?.reactions ?? {})) {
+    const base = name.replace(/::skin-tone-\d$/, "");
+    merged[base] = (merged[base] ?? 0) + n;
+  }
+  return merged;
+}
+
 // Notion sign-in, written by notion-login.ts. Secret: never print or commit it.
 
 export const notionToken = object({ client_id: string, access_token: string, refresh_token: string, expires_at: number });
@@ -214,9 +272,27 @@ export const notionFile = object({
 });
 export type NotionFile = Infer<typeof notionFile>;
 
+// Jev scoring: criteria from references/jev-criteria.json, results in DIR/scores.jsonl (score-jev.ts).
+
+export const jevCriteria = record(object({ instructions: string, criteria: array(string) }));
+export type JevCriteria = Infer<typeof jevCriteria>;
+export const scoreLine = object({
+  id: string,
+  source: literal("slack", "notion"),
+  at: timestamp,
+  where: string,
+  url: string,
+  text: string,
+  model: string,
+  /** Per criterion: Jev's probability-weighted level, 0 to the number of levels minus 1. */
+  scores: record(number),
+  confidence: record(number),
+});
+export type ScoreLine = Infer<typeof scoreLine>;
+
 // Highlights (written by the main agent from sub-agent candidates, so strict: a typo is an error, not a dropped field)
 
-export const highlightTag = literal("initiative", "technical depth", "unblocking", "decision", "delivery", "coordination");
+export const highlightTag = literal("initiative", "insight", "design", "ownership", "unblocking", "delivery", "coordination");
 export const highlight = strictObject({
   title: string,
   why: string,

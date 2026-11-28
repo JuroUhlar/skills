@@ -1,8 +1,8 @@
 // Collect one person's Notion pages and comments in a period, through Notion's hosted MCP server.
 //
-//   node collect-notion.ts --token TOKEN_FILE --from YYYY-MM-DD --to YYYY-MM-DD --out FILE
+//   node collect-notion.ts [--token TOKEN_FILE] --from YYYY-MM-DD --to YYYY-MM-DD --out FILE
 //
-// TOKEN_FILE comes from notion-login.ts. The public Notion API sees only pages shared with an integration;
+// TOKEN_FILE comes from notion-login.ts; it defaults to NOTION_TOKEN_FILE from the environment or .env.local. The public Notion API sees only pages shared with an integration;
 // the MCP server acts as the signed-in user, so it sees what they see. Read-only: calls only search, self, and comments.
 // - pages_created / pages_edited: workspace search filtered to the user, one month at a time.
 // - comments: the user's comments in the period, on those pages. Comments on other pages are missed.
@@ -13,7 +13,7 @@ import { NOTION_MCP, requestToken, saveToken } from "./notion-login.ts";
 import { notionToken, timestamp, type Day, type NotionFile, type NotionToken, type Period, type Timestamp } from "./records.ts";
 import { array, boolean, isObject, nullable, object, parse, string, withDefault, type Infer } from "./schema.ts";
 
-const USAGE = "usage: collect-notion.ts --token TOKEN_FILE --from YYYY-MM-DD --to YYYY-MM-DD --out FILE";
+const USAGE = "usage: collect-notion.ts [--token TOKEN_FILE] --from YYYY-MM-DD --to YYYY-MM-DD --out FILE";
 const PAGE_SIZE = 50;
 
 // MCP over HTTP: JSON-RPC requests; replies come as JSON or as server-sent events.
@@ -174,9 +174,10 @@ async function commentsOn(mcp: Mcp, page: Page, period: Period, warnings: string
 async function main() {
   const { values } = parseArgs({ options: { token: { type: "string" }, from: { type: "string" }, to: { type: "string" }, out: { type: "string" } } });
   const { out, ...period } = periodArgs(values, USAGE);
-  if (!values.token) fatal(USAGE);
-  const token = parse(notionToken, JSON.parse(readFileSync(values.token, "utf8")), "token file");
-  const mcp = new Mcp(token, values.token);
+  const tokenPath = values.token ?? process.env.NOTION_TOKEN_FILE;
+  if (!tokenPath) fatal(`${USAGE}\nOr set NOTION_TOKEN_FILE. Get a token with notion-login.ts.`);
+  const token = parse(notionToken, JSON.parse(readFileSync(tokenPath, "utf8")), "token file");
+  const mcp = new Mcp(token, tokenPath);
   await mcp.connect();
 
   const self = parse(object({ user: object({ name: string }) }), JSON.parse(await mcp.call("notion-get-self", {})), "notion self");

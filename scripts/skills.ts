@@ -182,7 +182,9 @@ function runEvals(extraArgs: string[]): number {
   rmSync(plugin, { recursive: true, force: true });
   mkdirSync(join(plugin, ".claude-plugin"), { recursive: true });
   writeFileSync(join(plugin, ".claude-plugin", "plugin.json"), JSON.stringify({ name: "all" }));
-  for (const skill of publicSkills()) cpSync(join(ROOT, skill), join(plugin, "skills", skill), { recursive: true });
+  // Skip local secrets (gitignored .env.local, token files) so eval sessions never see them.
+  const isSecret = (src: string) => /(^|\/)(\.env\.local|\.notion-token\.json)$/.test(src);
+  for (const skill of publicSkills()) cpSync(join(ROOT, skill), join(plugin, "skills", skill), { recursive: true, filter: (src) => !isSecret(src) });
   cpSync(join(ROOT, "evals"), join(plugin, "evals"), {
     recursive: true,
     filter: (src) => !src.startsWith(join(ROOT, "evals", "results")),

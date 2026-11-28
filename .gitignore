@@ -12,3 +12,7 @@ evals/results/
 
 # Installed and kept current by the Scrawl app.
 scrawl/
+
+# Local secrets for skill scripts, e.g. perf-review/.env.local.
+.env.local
+.notion-token.json

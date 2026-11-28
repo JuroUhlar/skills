@@ -5,6 +5,10 @@ import { fileURLToPath } from "node:url";
 import { epochMs, isDay, toTimestamp, type Actor, type Day, type Period, type Pr, type Timestamp } from "./records.ts";
 import { parse, type Schema } from "./schema.ts";
 
+// Keys live in the skill's gitignored .env.local; variables already set in the shell win.
+const LOCAL_ENV = fileURLToPath(new URL("../.env.local", import.meta.url));
+if (existsSync(LOCAL_ENV)) process.loadEnvFile(LOCAL_ENV);
+
 // Dates
 
 const MS_PER_DAY = 86_400_000;

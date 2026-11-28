@@ -28,8 +28,10 @@ Run the scripts for both periods in parallel, into `DIR/current/` and `DIR/previ
 node scripts/collect-github.ts --org ORG --from FROM --to TO --out DIR/current/github.json [--user LOGIN]
 SLACK_USER_TOKEN=... node scripts/collect-slack.ts --from FROM --to TO --out DIR/current/slack.json
 JIRA_SITE=... JIRA_EMAIL=... JIRA_API_TOKEN=... node scripts/collect-jira.ts --from FROM --to TO --out DIR/current/jira.json
-node scripts/collect-notion.ts --token TOKEN_FILE --from FROM --to TO --out DIR/current/notion.json
+node scripts/collect-notion.ts --from FROM --to TO --out DIR/current/notion.json
 ```
+
+Keys go in the skill's gitignored `.env.local` (`JIRA_SITE`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `TYPESAFE_API_KEY`, `NOTION_TOKEN_FILE`, optionally `SLACK_USER_TOKEN`). Every script loads it; variables set in the shell win.
 
 - GitHub: `gh` auth, a few minutes per year.
   - `authored`: PRs GitHub attributes to the user, merged in the period. Includes coding-agent PRs they assigned.
@@ -38,7 +40,7 @@ node scripts/collect-notion.ts --token TOKEN_FILE --from FROM --to TO --out DIR/
 - Jira: an API token from `https://id.atlassian.com/manage-profile/security/api-tokens`.
   - `implemented`: Done tickets assigned to the user, resolved in the period, with `started`: the first move into an In Progress status.
   - `reported`: tickets the user created in the period.
-- Notion: the public API sees only pages shared with an integration, so the script calls Notion's hosted MCP server (`mcp.notion.com`) as the user. Get `TOKEN_FILE` once with `node scripts/notion-login.ts --out TOKEN_FILE`; the user approves in the browser. Keep the file outside repos: it reads everything the user can.
+- Notion: the public API sees only pages shared with an integration, so the script calls Notion's hosted MCP server (`mcp.notion.com`) as the user. Get the token once with `node scripts/notion-login.ts`; the user approves in the browser, and it saves to `NOTION_TOKEN_FILE`. Keep the file outside commits: it reads everything the user can.
   - `pages_created`, `pages_edited`: workspace search, one month at a time.
   - `comments`: the user's comments in the period, on those pages only.
 
@@ -55,12 +57,14 @@ Run `node scripts/build-report.ts DIR` and read the counts and data notes before
 
 Current period only.
 
-1. `node scripts/prepare-batches.ts DIR` writes `DIR/batches/NN.txt` from Slack messages and Notion comments.
-2. Give each batch to a sub-agent with [references/highlights.md](references/highlights.md), all in parallel.
-3. Merge their candidates: drop duplicates of one effort, keep the 15 to 25 strongest, and write `DIR/highlights.json` in the `highlight` shape from `records.ts`. `build-report.ts` rejects a file that doesn't match, naming the bad field.
+1. `node scripts/collect-slack-threads.ts --in DIR/current/slack.json --out DIR/current/slack-threads.json` fetches the threads the user replied in, so each reply is judged with the thread start and the messages above it. Needs `channels:history` and `users:read`; about 15 minutes, resumable.
+2. `node scripts/score-jev.ts DIR` scores every message and comment with [Jev](https://docs.typesafe.ai/primitives/score.md), a model that rates text against described levels, on the criteria in [references/jev-criteria.json](references/jev-criteria.json) (insight, initiative, helping, design: technical design and architecture, captain: deciding rather than asking permission, and leaving colleagues their own calls). Humor comes from laugh reactions instead, which the report counts. Writes `DIR/scores.jsonl`; about a minute and a few cents per year. Edit the criteria file to change what is scored, then delete `scores.jsonl` and rerun.
+3. `node scripts/prepare-batches.ts DIR` writes `DIR/batches/NN.txt` with the items in the top 5% of some criterion, strongest first, each with its thread. Slack markup is shown as plain text.
+4. Give each batch to a sub-agent with [references/highlights.md](references/highlights.md), all in parallel.
+5. Merge their candidates: drop duplicates of one effort, keep the 15 to 25 strongest, and write `DIR/highlights.json` in the `highlight` shape from `records.ts`. `build-report.ts` rejects a file that doesn't match, naming the bad field.
 
 ## 5. Report
 
-Run `build-report.ts` again. `report.html` has the comparison table with definitions, monthly charts, breakdowns, highlights, data notes, and linked PR and ticket lists. Open it locally. Ask before publishing it anywhere: it holds colleagues' names and messages.
+Run `build-report.ts` again. `report.html` has the comparison table with definitions, monthly charts, breakdowns, the top-scored messages per criterion, highlights, data notes, and linked PR and ticket lists. Open it locally. Ask before publishing it anywhere: it holds colleagues' names and messages.
 
 Report each number with its comparison, and say which sources were missing.

@@ -7,14 +7,16 @@
 // DIR holds current/ and previous/, each with any of github.json, slack.json, jira.json, notion.json.
 // DIR/highlights.json (optional) adds qualitative highlights for the current period.
 // Writes DIR/metrics.json and DIR/report.html. Missing sources are listed in the report.
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
+import { parse } from "./schema.ts";
+import { STANDOUT_FLOOR, STANDOUT_PERCENT, standouts } from "./items.ts";
 import {
   AUTOMATED_BRANCH_PREFIXES, AUTOMATED_TITLE_RULE, BOT_LOGINS, automatedReason, earliest, fatal, hoursBetween, inPeriod, isBot, isMain, isNonEmpty, log, median, readJson, utcDay, writeJson,
 } from "./common.ts";
 import {
-  epochMs, githubFile, highlights as highlightsSchema, isReply, jiraFile, notionFile, slackFile,
+  epochMs, githubFile, highlights as highlightsSchema, reactionsOn, plainSlack, slackNames, scoreLine, slackThreadsFile, type ScoreLine, type SlackThreadsFile, isReply, jiraFile, notionFile, slackFile,
   type Actor, type Day, type GithubFile, type Highlight, type JiraFile, type MergedPr, type NotionFile, type Period, type Pr,
   type Review, type SlackFile, type SubmittedReview, type Ticket, type Timestamp,
 } from "./records.ts";
@@ -170,8 +172,29 @@ export function githubMetrics(g: GithubFile, bots: ReadonlySet<string> = new Set
 
 // Slack
 
-export function slackMetrics(s: SlackFile): SourceMetrics {
+/** Which reactions count as a laugh or as appreciation. Checked in this order; anything else (👀 ✅ ➕, votes,
+ * acknowledgements) counts toward neither. Patterns, so a workspace's custom emoji like `:thankyou:` match too. */
+export const REACTION_GROUPS = [
+  { group: "laugh", pattern: /joy|laugh|rofl|rolling_on_the_floor|lol|lmao|haha|kek|sweat_smile|grin|smile/ },
+  { group: "other", pattern: /^(eyes|white_check_mark|heavy_check_mark|ballot_box_with_check|heavy_plus_sign|heavy_minus_sign|one|two|three|four|five|a|b|ack.*|ok|np|no_problem|lgtm|thinking_face|.*sad.*|cry.*|sob|disappointed|confused|ticket)$/ },
+  { group: "appreciation", pattern: /thank|grat|pray|raised_hands|clap|tada|party|fire|heart|100|rocket|star|muscle|nice|kudos|bow|yes|teamwork|\+1|thumbsup|agree|bulb|brain|mind_blown|awesome|amazing|hero|trophy|medal|wow|exploding_head|chef|goat|love|great|perfect|hug/ },
+] as const;
+export const reactionGroup = (name: string): "laugh" | "appreciation" | "other" => REACTION_GROUPS.find((g) => g.pattern.test(name))?.group ?? "other";
+
+/** `threads`: from collect-slack-threads.ts; without it there are no reaction numbers. */
+export function slackMetrics(s: SlackFile, threads: SlackThreadsFile | null = null): SourceMetrics {
   const msgs = s.messages.filter((m) => inPeriod(m.at, s.period));
+  const reacted = threads ? msgs.map((m) => ({ m, r: reactionsOn(m, threads) ?? {} })) : [];
+  const names = slackNames(threads);
+  const title = (text: string) => {
+    const plain = plainSlack(text, names);
+    return plain.length > 120 ? `${plain.slice(0, 120)}…` : plain;
+  };
+  const count = (r: Record<string, number>, group: string) => Object.entries(r).reduce((n, [k, v]) => n + (reactionGroup(k) === group ? v : 0), 0);
+  const per100 = (group: string) => threads && msgs.length ? Math.round((1000 * reacted.reduce((n, { r }) => n + count(r, group), 0)) / msgs.length) / 10 : null;
+  const top = (group: string) => reacted.filter(({ r }) => count(r, group) > 0).sort((a, b) => count(b.r, group) - count(a.r, group)).slice(0, 30)
+    .map(({ m, r }) => ({ url: m.permalink, title: title(m.text), at: m.at, channel: `#${m.channel}`, reactions: count(r, group),
+      emoji: Object.entries(r).filter(([k]) => reactionGroup(k) === group).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, n]) => `:${k}: ${n}`).join(" ") }));
   const skipped = Object.entries(s.skipped_non_public);
   const skippedTotal = skipped.reduce((n, [, v]) => n + v, 0);
   return {
@@ -179,9 +202,15 @@ export function slackMetrics(s: SlackFile): SourceMetrics {
       messages: msgs.length,
       threads_started_per_100_messages: msgs.length ? Math.round((1000 * msgs.filter((m) => !isReply(m)).length) / msgs.length) / 10 : null,
       active_channels: new Set(msgs.map((m) => m.channel_id)).size,
+      appreciation_per_100_messages: per100("appreciation"),
+      laughs_per_100_messages: per100("laugh"),
     },
     monthly: { messages: monthly(msgs, s.period, (m) => m.at) },
-    lists: { "Slack channels": countBy(msgs.map((m) => m.channel)) },
+    lists: {
+      "Slack channels": countBy(msgs.map((m) => m.channel)),
+      ...(threads ? { "Reactions you received": countBy(reacted.flatMap(({ r }) => Object.entries(r).flatMap(([name, n]) => Array<string>(n).fill(`:${name}:`)))) } : {}),
+    },
+    ...(threads ? { details: { "most-appreciated Slack messages": top("appreciation"), "Slack messages with the most laughs": top("laugh") } } : {}),
     caveats: skippedTotal ? [`Slack excluded ${skippedTotal} messages in DMs and private channels (${skipped.map(([k, v]) => `${v} ${k}`).join(", ")}).`] : [],
   };
 }
@@ -244,7 +273,7 @@ const METRIC_KEYS = [
   "merged_prs", "comments_per_pr", "changes_requested_per_100_prs", "median_pr_diff_lines", 
   "median_hours_to_merge", "repos_contributed", "reviewed_prs", "review_comments_per_pr", "changes_requested_by_you_per_100_prs",
   "median_hours_to_first_review", "people_reviewed",
-  "messages", "threads_started_per_100_messages", "active_channels",
+  "messages", "threads_started_per_100_messages", "active_channels", "appreciation_per_100_messages", "laughs_per_100_messages",
   "tickets_implemented", "median_days_to_done", "tickets_reported",
   "notion_pages_created", "notion_comments",
 ] as const;
@@ -301,6 +330,10 @@ export function metricInfo(): Record<MetricKey, MetricInfo> {
     messages: { name: "Slack messages", def: "Your messages in public channels.", better: "neutral" },
     threads_started_per_100_messages: { name: "Slack threads started per 100 messages", def: "How often you start a conversation rather than reply in one.", better: "higher",
       more: ["A thread start is a top-level message in a channel; everything else is a reply."] },
+    appreciation_per_100_messages: { name: "Appreciation reactions per 100 messages", def: "Thanks, 🙌, 🎉, 🔥, 👍 and similar reactions from others on your public messages.", better: "higher",
+      more: ["Each person's reaction counts once per emoji; your own reactions don't count.", "Acknowledgements (👀 ✅) and votes (➕ 1️⃣ 🅱️) don't count.", "Matched by emoji name, so custom emoji like :thankyou: count; the full list is under Reactions you received.", "Needs collect-slack-threads.ts for the period; blank without it."] },
+    laughs_per_100_messages: { name: "Laugh reactions per 100 messages", def: "😂, 🤣, 😄 and similar reactions from others on your public messages.", better: "higher",
+      more: ["Each person's reaction counts once per emoji; your own reactions don't count.", "Needs collect-slack-threads.ts for the period; blank without it."] },
     active_channels: { name: "Slack channels active in", def: "Distinct public channels you posted in.", better: "higher" },
     tickets_implemented: { name: "Jira tickets implemented", def: "Done tickets assigned to you, resolved in the period.", better: "higher",
       more: [`Resolutions ${NOT_DONE_RULE} don't count.`, "Uses the current assignee: a ticket you finished that was later reassigned counts for the new assignee."] },
@@ -322,9 +355,29 @@ export type Report = {
   caveats: string[];
   github_org: string | null;
   highlights: Highlight[];
+  /** Jev scores from DIR/scores.jsonl, if score-jev.ts ran. */
+  scores: ScoreSummary | null;
   info: Partial<Record<MetricKey, MetricInfo>>;
   source_info: Partial<Record<Source, string[]>>;
 };
+
+// Jev scores
+
+export type ScoredItem = Pick<ScoreLine, "url" | "where" | "at" | "text"> & { score: number };
+export type ScoreSummary = { scored: number; strong: Record<string, number>; top: Record<string, ScoredItem[]> };
+
+export function summarizeScores(lines: ScoreLine[], topN = 8): ScoreSummary {
+  const criteria = [...new Set(lines.flatMap((l) => Object.keys(l.scores)))];
+  const strong: Record<string, number> = {};
+  const top: Record<string, ScoredItem[]> = {};
+  const stand = [...standouts(lines, STANDOUT_PERCENT, STANDOUT_FLOOR).values()];
+  for (const k of criteria) {
+    const scored = lines.map((l) => ({ url: l.url, where: l.where, at: l.at, text: l.text, score: l.scores[k] ?? 0 }));
+    strong[k] = stand.filter((c) => c.includes(k)).length;
+    top[k] = scored.sort((a, b) => b.score - a.score).slice(0, topN);
+  }
+  return { scored: lines.length, strong, top };
+}
 
 /** Rename repos so a moved or replaced repo counts as one. Names without an org get the file's org. */
 export function mergeRepos(g: GithubFile, sameRepo: ReadonlyMap<string, string>): GithubFile {
@@ -338,7 +391,7 @@ export function mergeRepos(g: GithubFile, sameRepo: ReadonlyMap<string, string>)
 export type BuildOptions = { bots?: ReadonlySet<string>; sameRepo?: ReadonlyMap<string, string> };
 
 export function build(dir: string, { bots = new Set(), sameRepo = new Map() }: BuildOptions = {}): Report {
-  const report: Report = { periods: {}, sources: {}, missing: [], caveats: [], github_org: null, highlights: [], info: {}, source_info: {} };
+  const report: Report = { periods: {}, sources: {}, missing: [], caveats: [], github_org: null, highlights: [], info: {}, source_info: {}, scores: null };
   for (const which of ["current", "previous"] as const) {
     const loaded = [
       ["github", readJson(join(dir, which, "github.json"), githubFile)],
@@ -355,7 +408,8 @@ export function build(dir: string, { bots = new Set(), sameRepo = new Map() }: B
       if (seen.from !== data.period.from || seen.to !== data.period.to) {
         report.caveats.push(`${which}/${src}.json covers ${data.period.from} to ${data.period.to}, unlike the other ${which} files.`);
       }
-      const m = metricsFor(data.source === "github" ? mergeRepos(data, sameRepo) : data, bots);
+      const threads = data.source === "slack" ? readJson(join(dir, which, "slack-threads.json"), slackThreadsFile) : null;
+      const m = data.source === "slack" ? slackMetrics(data, threads) : metricsFor(data.source === "github" ? mergeRepos(data, sameRepo) : data, bots);
       (report.sources[src] ??= {})[which] = m;
       if (which === "current") report.caveats.push(...m.caveats);
       if (data.source === "github" && which === "current") report.github_org = data.org;
@@ -365,6 +419,11 @@ export function build(dir: string, { bots = new Set(), sameRepo = new Map() }: B
   const notes = sourceInfo(report.github_org, bots, sameRepo);
   for (const src of Object.keys(report.sources) as Source[]) report.source_info[src] = notes[src];
   report.highlights = readJson(join(dir, "highlights.json"), highlightsSchema) ?? [];
+  const scoresPath = join(dir, "scores.jsonl");
+  if (existsSync(scoresPath)) {
+    const lines = readFileSync(scoresPath, "utf8").split("\n").filter(Boolean).map((l, i) => parse(scoreLine, JSON.parse(l), `${scoresPath}:${i + 1}`));
+    report.scores = summarizeScores(lines);
+  }
   return report;
 }
 

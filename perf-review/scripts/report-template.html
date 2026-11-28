@@ -115,7 +115,7 @@ function shareSpec(title, prevPairs, curPairs, unit, topN = 10) {
   return {title, labels, prev: prevPairs.length ? toShare(prevCounts, tp) : null, cur: toShare(curCounts, tc),
     share: {prevCounts, curCounts, unit}, horizontal: true, height: 70 + 34 * labels.length};
 }
-const UNITS = {'Repos (your merged PRs)': 'PRs', 'Repos (PRs you reviewed)': 'PRs', 'Authors you reviewed': 'PRs', 'Slack channels': 'messages', 'Jira tickets by type': 'tickets'};
+const UNITS = {'Reactions you received': 'reactions', 'Repos (your merged PRs)': 'PRs', 'Repos (PRs you reviewed)': 'PRs', 'Authors you reviewed': 'PRs', 'Slack channels': 'messages', 'Jira tickets by type': 'tickets'};
 const breakdowns = [], histos = [];
 for (const per of Object.values(m.sources)) {
   for (const title of new Set([...Object.keys(per.current?.lists || {}), ...Object.keys(per.previous?.lists || {})]))
@@ -139,6 +139,13 @@ if (window.Chart) { draw(); matchMedia('(prefers-color-scheme: dark)').addEventL
 // Only http(s) links, so a crafted URL in a data file can't run script.
 const safeUrl = (u) => /^https?:\/\//i.test(String(u)) ? u : '#';
 const link = (url, text) => `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener">${esc(text)}</a>`;
+
+// Jev scores: the top messages per criterion, each with a link to read it in context.
+if (m.scores && m.scores.scored) {
+  const clipText = (t) => t.length > 280 ? `${t.slice(0, 280)}…` : t;
+  const cards = Object.entries(m.scores.top).map(([k, items]) => `<div class="card"><strong>${esc(k)}</strong> <span class="warn">${m.scores.strong[k]} standouts</span>${items.map(s => `<div class="hl"><span class="tag">${s.score.toFixed(1)}</span>${link(s.url, `${s.where}, ${String(s.at).slice(0, 10)}`)}<div class="warn">${esc(clipText(s.text))}</div></div>`).join('')}</div>`).join('');
+  app.append($(`<h2>Scored messages</h2><p class="sub">Jev scored ${m.scores.scored.toLocaleString()} Slack messages and Notion comments, each with its thread. A standout is in the top 5% for its criterion and scores at least 1 of 3.</p><div class="grid wide">${cards}</div>`));
+}
 
 // Highlights
 if (m.highlights.length) {
