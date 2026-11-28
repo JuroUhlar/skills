@@ -1,13 +1,18 @@
 // Helpers shared by the collectors and the report builder.
 import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { epochMs, isDay, toTimestamp, type Actor, type Day, type Period, type Pr, type Timestamp } from "./records.ts";
 import { parse, type Schema } from "./schema.ts";
 
 // Keys live in the skill's gitignored .env.local; variables already set in the shell win.
 const LOCAL_ENV = fileURLToPath(new URL("../.env.local", import.meta.url));
+const shellTokenFile = process.env.NOTION_TOKEN_FILE;
 if (existsSync(LOCAL_ENV)) process.loadEnvFile(LOCAL_ENV);
+// A relative path in .env.local means relative to the skill folder, not to wherever the script runs from.
+if (shellTokenFile === undefined && process.env.NOTION_TOKEN_FILE && !isAbsolute(process.env.NOTION_TOKEN_FILE)) {
+  process.env.NOTION_TOKEN_FILE = resolve(dirname(LOCAL_ENV), process.env.NOTION_TOKEN_FILE);
+}
 
 // Dates
 
@@ -104,7 +109,7 @@ export function writeJson(path: string, data: unknown): void {
 // HTTP
 
 /** Seconds to wait before retrying a response, or null if it isn't retryable. */
-function retryAfter(res: Response, attempt: number): number | null {
+export function retryAfter(res: Response, attempt: number): number | null {
   const header = Number(res.headers.get("retry-after"));
   if (header > 0) return header;
   // GitHub signals primary rate limits with 403 and x-ratelimit-remaining: 0.

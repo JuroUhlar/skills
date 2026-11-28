@@ -20,6 +20,11 @@ const usersPage = ok(object({
   members: array(object({ id: string, name: withDefault(string, () => ""), real_name: withDefault(string, () => ""), profile: withDefault(nullable(object({ display_name: withDefault(string, () => "") })), () => null) })),
   response_metadata: nextCursor,
 }));
+/** Errors that mean this one thread is gone for good; recorded in `missing` and skipped on rerun. Auth and scope
+ * errors stop the run, and anything else stops it with progress saved, so a rerun retries those threads. */
+const GONE = new Set(["thread_not_found", "channel_not_found", "not_in_channel", "message_not_found", "is_archived"]);
+const AUTH = new Set(["missing_scope", "invalid_auth", "not_authed", "token_revoked", "token_expired", "account_inactive", "no_permission"]);
+export const threadError = (error: string): "gone" | "auth" | "retry" => (GONE.has(error) ? "gone" : AUTH.has(error) ? "auth" : "retry");
 // Not wrapped in ok(): a deleted thread or a channel the user left is recorded, not fatal.
 const repliesPage = object({
   ok: boolean,
@@ -47,7 +52,13 @@ async function thread(token: string, channel: string, ts: string, names: Map<str
   let cursor = "";
   do {
     const page = await call(token, "conversations.replies", { channel, ts, limit: "200", ...(cursor ? { cursor } : {}) }, repliesPage);
-    if (!page.ok) return page.error ?? "unknown error";
+    if (!page.ok) {
+      const error = page.error ?? "unknown error";
+      const kind = threadError(error);
+      if (kind === "auth") fatal(`Slack conversations.replies: ${error}. The token needs channels:history and users:read.`);
+      if (kind === "gone") return error;
+      throw new Error(`Slack conversations.replies ${channel}/${ts}: ${error}`);
+    }
     for (const m of page.messages) {
       const reactions = Object.fromEntries(m.reactions.map((r) => [r.name, r.count - (r.users.includes(me) ? 1 : 0)] as const).filter(([, n]) => n > 0));
       out.push({ ts: m.ts, user_id: m.user, name: (m.user && names.get(m.user)) || m.username || "unknown", text: m.text, reactions });
@@ -77,7 +88,13 @@ async function main() {
   const names = await userNames(token);
   let done = 0;
   for (const [key, { channel, ts }] of todo) {
-    const result = await thread(token, channel, ts, names, slack.user_id);
+    let result: ThreadMessage[] | string;
+    try {
+      result = await thread(token, channel, ts, names, slack.user_id);
+    } catch (e) {
+      writeJson(out, { ...file, collected_at: now() });
+      throw e;
+    }
     if (typeof result === "string") file.missing[key] = result;
     else file.threads[key] = result;
     if (++done % SAVE_EVERY === 0 || done === todo.length) {

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>__TITLE__</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 :root{color-scheme:light;--bg:#fafafa;--surface-1:#fff;--border:#e3e3e3;--text-primary:#191919;--text-secondary:#666;--series-1:#257de0;--series-prev:#a3a3a3;--good:#008a17;--bad:#c62828;--grid:#ececec}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#111;--surface-1:#191919;--border:#333;--text-primary:#efefef;--text-secondary:#9c9c9c;--series-1:#338ced;--series-prev:#6b6b6b;--good:#0aac23;--bad:#eb6263;--grid:#2a2a2a}}
@@ -143,7 +143,7 @@ const link = (url, text) => `<a href="${esc(safeUrl(url))}" target="_blank" rel=
 // Jev scores: the top messages per criterion, each with a link to read it in context.
 if (m.scores && m.scores.scored) {
   const clipText = (t) => t.length > 280 ? `${t.slice(0, 280)}…` : t;
-  const cards = Object.entries(m.scores.top).map(([k, items]) => `<div class="card"><strong>${esc(k)}</strong> <span class="warn">${m.scores.strong[k]} standouts</span>${items.map(s => `<div class="hl"><span class="tag">${s.score.toFixed(1)}</span>${link(s.url, `${s.where}, ${String(s.at).slice(0, 10)}`)}<div class="warn">${esc(clipText(s.text))}</div></div>`).join('')}</div>`).join('');
+  const cards = Object.entries(m.scores.top).map(([k, items]) => `<div class="card"><strong>${esc(k)}</strong> <span class="warn">${m.scores.strong[k]} standouts</span>${m.scores.about?.[k] ? `<div class="warn">${esc(m.scores.about[k])}</div>` : ''}${items.map(s => `<div class="hl"><span class="tag">${s.score.toFixed(1)}</span>${link(s.url, `${s.where}, ${String(s.at).slice(0, 10)}`)}<div class="warn">${esc(clipText(s.text))}</div></div>`).join('')}</div>`).join('');
   app.append($(`<h2>Scored messages</h2><p class="sub">Jev scored ${m.scores.scored.toLocaleString()} Slack messages and Notion comments, each with its thread. A standout is in the top 5% for its criterion and scores at least 1 of 3.</p><div class="grid wide">${cards}</div>`));
 }
 

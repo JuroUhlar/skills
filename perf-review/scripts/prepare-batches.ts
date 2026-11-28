@@ -5,24 +5,21 @@
 // With DIR/scores.jsonl (score-jev.ts), keeps only items in the top --top percent of some criterion that also
 // score at least --min-score on it, strongest first, with their scores. Without it, keeps every item of at least --min-chars.
 // Each item comes with its thread context. Writes DIR/batches/NN.txt.
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { fatal, isMain, log } from "./common.ts";
-import { loadItems, renderItem, STANDOUT_FLOOR, STANDOUT_PERCENT, standouts, type Item } from "./items.ts";
-import { scoreLine } from "./records.ts";
-import { parse } from "./schema.ts";
+import { loadItems, readScores, renderItem, STANDOUT_FLOOR, STANDOUT_PERCENT, standouts, type Item } from "./items.ts";
 
 type Picked = { item: Item; scores: Record<string, number> | null; standsOut: string[] };
 
 export function pickItems(dir: string, opts: { before: number; top: number; minScore: number; minChars: number }): { picked: Picked[]; person: string; scored: boolean } {
   const { items, person } = loadItems(dir, opts.before);
-  const path = join(dir, "scores.jsonl");
-  if (!existsSync(path)) {
+  const lines = readScores(dir);
+  if (!lines.length) {
     const picked = items.filter((i) => [...i.text.trim()].length >= opts.minChars).map((item) => ({ item, scores: null, standsOut: [] }));
     return { picked, person, scored: false };
   }
-  const lines = readFileSync(path, "utf8").split("\n").filter(Boolean).map((l, i) => parse(scoreLine, JSON.parse(l), `${path}:${i + 1}`));
   const scores = new Map(lines.map((l) => [l.id, l.scores]));
   const stand = standouts(lines, opts.top, opts.minScore);
   const best = (s: Record<string, number>) => Math.max(0, ...Object.values(s));

@@ -1,7 +1,7 @@
 // Run: node --test 'perf-review/scripts/*.test.ts'
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
@@ -10,10 +10,12 @@ import { reactionGroup, build, githubMetrics, jiraMetrics, monthly, render, revi
 import { toRecord } from "./collect-github.ts";
 import { startedAt, toTicket } from "./collect-jira.ts";
 import { htmlToText, parseDiscussions } from "./collect-notion.ts";
-import { loadItems, renderItem, standouts } from "./items.ts";
+import { loadItems, readCriteria, readScores, renderItem, standouts } from "./items.ts";
+import { threadError } from "./collect-slack-threads.ts";
 import { channelKind, threadOf } from "./collect-slack.ts";
 import { automatedReason, inPeriod, isBot, median, monthChunks, utcDay } from "./common.ts";
 import { pickItems } from "./prepare-batches.ts";
+import { saveToken } from "./notion-login.ts";
 import {
   day, highlights, isDay, plainSlack, isTimestamp, period, review, type Day, type GithubFile, type MergedPr, type Pr, type Review,
   type Ticket, type Timestamp,
@@ -159,11 +161,28 @@ describe("notion comments", () => {
   });
 });
 
+describe("collect-slack-threads errors", () => {
+  it("records only gone threads, stops on auth errors, and retries the rest", () => {
+    assert.deepEqual(["thread_not_found", "channel_not_found", "missing_scope", "invalid_auth", "ratelimited", "internal_error"].map(threadError),
+      ["gone", "gone", "auth", "auth", "retry", "retry"]);
+  });
+});
+
+describe("saveToken", () => {
+  it("leaves the token file readable only by the user, even when replacing a looser one", () => {
+    const path = join(dir(), "token.json");
+    writeFileSync(path, "{}", { mode: 0o644 });
+    saveToken(path, { client_id: "c", access_token: "a", refresh_token: "r", expires_at: 1 });
+    assert.equal(statSync(path).mode & 0o777, 0o600);
+  });
+});
+
 describe("plainSlack", () => {
   it("turns Slack markup into the text people see", () => {
     const names = new Map([["U1", "Ana"]]);
     assert.equal(plainSlack("<@U1> see <https://x.io/a|the doc> and <https://x.io/b> in <#C1|eng>, <!here> &amp; <@U9> <@S1>", names),
       "@Ana see the doc (https://x.io/a) and https://x.io/b in #eng, @here & @someone @team");
+    assert.equal(plainSlack("<@U9|> <#C1|> <!subteam^S1|> <!date^1700000000^{date_short}|Nov 14, 2023>", names), "@someone #channel @team Nov 14, 2023");
   });
 });
 
@@ -173,6 +192,22 @@ describe("jev scores", () => {
     const s = summarizeScores([line("a", 0.2, 2.1), line("b", 2.4, 0), line("c", 2, 0.1)], 2);
     assert.deepEqual(s.top.insight?.map((i) => i.url), ["b", "c"]);
     assert.deepEqual(s.strong, { insight: 1, humor: 1 });
+  });
+  it("handles no scores, scores all below the floor, and ties at the cut-off", () => {
+    const line = (id: string, insight: number) => ({ id, source: "slack" as const, at: t("2026-03-01T00:00:00Z"), where: "#c", url: id, text: "x", model: "jev", scores: { insight }, confidence: {} });
+    assert.equal(standouts([], 5, 1).size, 0);
+    assert.equal(standouts([line("a", 0.9), line("b", 0.5)], 50, 1).size, 0);
+    assert.deepEqual([...standouts([line("a", 2), line("b", 2), line("c", 1.5), line("d", 1)], 25, 1).keys()], ["a", "b"]);
+  });
+  it("reads scores.jsonl with the later line winning for an item scored twice", () => {
+    const base = dir();
+    const score = (insight: number) => JSON.stringify({ id: "x", source: "slack", at: "2026-02-02T00:00:00Z", where: "#c", url: "https://x", text: "x", model: "jev", scores: { insight }, confidence: {} });
+    writeFileSync(join(base, "scores.jsonl"), `${score(0.5)}\n${score(2.5)}\n`);
+    assert.deepEqual(readScores(base).map((l) => l.scores.insight), [2.5]);
+    assert.deepEqual(readScores(dir()), []);
+  });
+  it("every criterion has a summary for the report", () => {
+    for (const [k, c] of Object.entries(readCriteria())) assert.ok(c.summary, k);
   });
   it("picks each criterion's top percent, above a floor", () => {
     const line = (id: string, insight: number, captain: number) => ({ id, source: "slack" as const, at: t("2026-03-01T00:00:00Z"), where: "#c", url: id, text: "x", model: "jev", scores: { insight, captain }, confidence: {} });
@@ -358,17 +393,19 @@ describe("files and report", () => {
     assert.deepEqual(groups(["joy", "rolling_on_the_floor_laughing", "laughing", "sweat_smile"]), ["laugh", "laugh", "laugh", "laugh"]);
     assert.deepEqual(groups(["thankyou", "raised_hands", "+1", "fireball", "tada", "party_blob", "extreme-teamwork", "gratitude-thank-you", "100"]), Array(9).fill("appreciation"));
     assert.deepEqual(groups(["eyes", "white_check_mark", "heavy_plus_sign", "one", "b", "ack-2", "very-sadge", "lgtm"]), Array(8).fill("other"));
+    assert.deepEqual(groups(["face_with_rolling_eyes", "side_eye", "disagree", "broken_heart", "dumpster_fire", "rainbow", "four_leaf_clover", "lollipop", "joystick", "-1"]), Array(10).fill("other"));
+    assert.deepEqual(groups(["yess", "agree", "heart", "star-struck", "joy_cat"]), ["appreciation", "appreciation", "appreciation", "appreciation", "laugh"]);
   });
   it("counts reactions others left on the user's messages", () => {
     const base = dir();
     write(join(base, "current", "slack.json"), slack([message("1.0", "2026-02-01T10:00:00Z", "C1", null), message("2.0", "2026-02-01T11:00:00Z", "C1", null)]));
     write(join(base, "current", "slack-threads.json"), { source: "slack-threads", user_id: "U", collected_at: "2026-12-31T00:00:00Z",
-      threads: { "C1/1.0": [{ ts: "1.0", user_id: "U", name: "me", text: "x", reactions: { joy: 3, "+1": 1, "+1::skin-tone-2": 1, eyes: 2 } }], "C1/2.0": [{ ts: "2.0", user_id: "U", name: "me", text: "y" }] } });
+      threads: { "C1/1.0": [{ ts: "1.0", user_id: "U", name: "me", text: "x", reactions: { joy: 3, "+1": 1, "+1::skin-tone-2": 1, eyes: 2, "handshake::skin-tone-2::skin-tone-5": 1 } }], "C1/2.0": [{ ts: "2.0", user_id: "U", name: "me", text: "y" }] } });
     const s = build(base).sources.slack?.current;
     assert.equal(s?.metrics.laughs_per_100_messages, 150);
     assert.equal(s?.metrics.appreciation_per_100_messages, 100);
-    assert.deepEqual(s?.lists?.["Reactions you received"], [[":joy:", 3], [":+1:", 2], [":eyes:", 2]]);
-    assert.match(renderItem(loadItems(base).items[0] ?? assert.fail(), "me"), /Colleagues reacted with: :joy: ×3, :\+1: ×2, :eyes: ×2$/);
+    assert.deepEqual(s?.lists?.["Reactions you received"], [[":joy:", 3], [":+1:", 2], [":eyes:", 2], [":handshake:", 1]]);
+    assert.match(renderItem(loadItems(base).items[0] ?? assert.fail(), "me"), /Colleagues reacted with: :joy: ×3, :\+1: ×2, :eyes: ×2, :handshake: ×1$/);
   });
   it("gives a thread reply the thread start and the replies just above it", () => {
     const base = dir();
@@ -406,8 +443,11 @@ describe("files and report", () => {
     assert.ok(report.missing.includes("previous/github.json"));
     assert.ok(report.caveats.some((c) => c.includes("current/jira.json covers")));
     const html = render(report);
-    const data = html.slice(html.indexOf("const {m, labels"));
-    assert.equal(/<\/script>.*<\/script>/s.test(data.slice(0, data.lastIndexOf("</script>"))), false);
+    const start = html.indexOf("const {m} = ");
+    assert.notEqual(start, -1);
+    const data = html.slice(start, html.indexOf("\n", start));
+    assert.ok(data.includes("\\u003c/script>"));
+    assert.equal(data.includes("</script>"), false);
     assert.equal(data.includes("<!--"), false);
   });
 });

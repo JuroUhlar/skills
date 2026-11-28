@@ -31,7 +31,7 @@ JIRA_SITE=... JIRA_EMAIL=... JIRA_API_TOKEN=... node scripts/collect-jira.ts --f
 node scripts/collect-notion.ts --from FROM --to TO --out DIR/current/notion.json
 ```
 
-Keys go in the skill's gitignored `.env.local` (`JIRA_SITE`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `TYPESAFE_API_KEY`, `NOTION_TOKEN_FILE`, optionally `SLACK_USER_TOKEN`). Every script loads it; variables set in the shell win.
+Keys go in the skill's gitignored `.env.local` (`JIRA_SITE`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `TYPESAFE_API_KEY`, `NOTION_TOKEN_FILE`, optionally `SLACK_USER_TOKEN`). `NOTION_TOKEN_FILE=.notion-token.json` keeps the token in the skill folder, also gitignored. Every script loads it; variables set in the shell win.
 
 - GitHub: `gh` auth, a few minutes per year.
   - `authored`: PRs GitHub attributes to the user, merged in the period. Includes coding-agent PRs they assigned.
@@ -57,7 +57,7 @@ Run `node scripts/build-report.ts DIR` and read the counts and data notes before
 
 Current period only.
 
-1. `node scripts/collect-slack-threads.ts --in DIR/current/slack.json --out DIR/current/slack-threads.json` fetches the threads the user replied in, so each reply is judged with the thread start and the messages above it. Needs `channels:history` and `users:read`; about 15 minutes, resumable.
+1. `node scripts/collect-slack-threads.ts --in DIR/current/slack.json --out DIR/current/slack-threads.json` fetches the threads the user posted in, so each reply is judged with the thread start and the messages above it, plus every message's emoji reactions. Needs `channels:history` and `users:read`; about 20 minutes a year, resumable. Run it for `previous/` too: the report's appreciation and laugh counts compare both years.
 2. `node scripts/score-jev.ts DIR` scores every message and comment with [Jev](https://docs.typesafe.ai/primitives/score.md), a model that rates text against described levels, on the criteria in [references/jev-criteria.json](references/jev-criteria.json) (insight, initiative, helping, design: technical design and architecture, captain: deciding rather than asking permission, and leaving colleagues their own calls). Humor comes from laugh reactions instead, which the report counts. Writes `DIR/scores.jsonl`; about a minute and a few cents per year. Edit the criteria file to change what is scored, then delete `scores.jsonl` and rerun.
 3. `node scripts/prepare-batches.ts DIR` writes `DIR/batches/NN.txt` with the items in the top 5% of some criterion, strongest first, each with its thread. Slack markup is shown as plain text.
 4. Give each batch to a sub-agent with [references/highlights.md](references/highlights.md), all in parallel.
@@ -65,6 +65,6 @@ Current period only.
 
 ## 5. Report
 
-Run `build-report.ts` again. `report.html` has the comparison table with definitions, monthly charts, breakdowns, the top-scored messages per criterion, highlights, data notes, and linked PR and ticket lists. Open it locally. Ask before publishing it anywhere: it holds colleagues' names and messages.
+Run `build-report.ts` again, with the same `--bots` and `--same-repo` flags. `report.html` has the comparison table with definitions, monthly charts, breakdowns, the top-scored messages per criterion, highlights, data notes, and linked PR and ticket lists. Open it locally. Ask before publishing it anywhere: it holds colleagues' names and messages.
 
 Report each number with its comparison, and say which sources were missing.

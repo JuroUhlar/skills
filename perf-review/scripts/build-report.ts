@@ -7,16 +7,15 @@
 // DIR holds current/ and previous/, each with any of github.json, slack.json, jira.json, notion.json.
 // DIR/highlights.json (optional) adds qualitative highlights for the current period.
 // Writes DIR/metrics.json and DIR/report.html. Missing sources are listed in the report.
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { parse } from "./schema.ts";
-import { STANDOUT_FLOOR, STANDOUT_PERCENT, standouts } from "./items.ts";
+import { readCriteria, readScores, STANDOUT_FLOOR, STANDOUT_PERCENT, standouts } from "./items.ts";
 import {
   AUTOMATED_BRANCH_PREFIXES, AUTOMATED_TITLE_RULE, BOT_LOGINS, automatedReason, earliest, fatal, hoursBetween, inPeriod, isBot, isMain, isNonEmpty, log, median, readJson, utcDay, writeJson,
 } from "./common.ts";
 import {
-  epochMs, githubFile, highlights as highlightsSchema, reactionsOn, plainSlack, slackNames, scoreLine, slackThreadsFile, type ScoreLine, type SlackThreadsFile, isReply, jiraFile, notionFile, slackFile,
+  epochMs, githubFile, highlights as highlightsSchema, reactionsOn, plainSlack, slackNames, slackThreadsFile, type ScoreLine, type SlackThreadsFile, isReply, jiraFile, notionFile, slackFile,
   type Actor, type Day, type GithubFile, type Highlight, type JiraFile, type MergedPr, type NotionFile, type Period, type Pr,
   type Review, type SlackFile, type SubmittedReview, type Ticket, type Timestamp,
 } from "./records.ts";
@@ -173,11 +172,13 @@ export function githubMetrics(g: GithubFile, bots: ReadonlySet<string> = new Set
 // Slack
 
 /** Which reactions count as a laugh or as appreciation. Checked in this order; anything else (👀 ✅ ➕, votes,
- * acknowledgements) counts toward neither. Patterns, so a workspace's custom emoji like `:thankyou:` match too. */
+ * acknowledgements, 🙄 💔) counts toward neither. Patterns, so a workspace's custom emoji like `:thankyou:` match too;
+ * short stems match only as whole words between `-` or `_`, so `:lollipop:` isn't a laugh and `:rainbow:` isn't a bow. */
+const word = (stems: string) => `(^|[-_])(${stems})([-_]|$)`;
 export const REACTION_GROUPS = [
-  { group: "laugh", pattern: /joy|laugh|rofl|rolling_on_the_floor|lol|lmao|haha|kek|sweat_smile|grin|smile/ },
-  { group: "other", pattern: /^(eyes|white_check_mark|heavy_check_mark|ballot_box_with_check|heavy_plus_sign|heavy_minus_sign|one|two|three|four|five|a|b|ack.*|ok|np|no_problem|lgtm|thinking_face|.*sad.*|cry.*|sob|disappointed|confused|ticket)$/ },
-  { group: "appreciation", pattern: /thank|grat|pray|raised_hands|clap|tada|party|fire|heart|100|rocket|star|muscle|nice|kudos|bow|yes|teamwork|\+1|thumbsup|agree|bulb|brain|mind_blown|awesome|amazing|hero|trophy|medal|wow|exploding_head|chef|goat|love|great|perfect|hug/ },
+  { group: "other", pattern: new RegExp(`rolling_eyes|side_?eye|disagree|broken_heart|dumpster_fire|facepalm|thumbsdown|${word("-1|eyes|white_check_mark|heavy_check_mark|ballot_box_with_check|heavy_plus_sign|heavy_minus_sign|one|two|three|four|five|a|b|ok|np|no_problem|lgtm|thinking_face|sob|ticket")}|^ack|sad|cry|disappointed|confused`) },
+  { group: "laugh", pattern: new RegExp(`laugh|rolling_on_the_floor|haha|sweat_smile|grin|smile|${word("joy|joy_cat|lol|lmao|rofl|kek")}`) },
+  { group: "appreciation", pattern: new RegExp(`thank|grat|pray|raised_hands|clap|tada|party|fire|heart|100|rocket|muscle|nice|kudos|teamwork|thumbsup|bulb|brain|mind_blown|awesome|amazing|hero|trophy|medal|exploding_head|chef|goat|great|perfect|${word("\\+1|yes+|agree|bow|hug|hugs|hugging_face|love|wow|star|star2|stars|star-struck")}`) },
 ] as const;
 export const reactionGroup = (name: string): "laugh" | "appreciation" | "other" => REACTION_GROUPS.find((g) => g.pattern.test(name))?.group ?? "other";
 
@@ -314,7 +315,7 @@ export function metricInfo(): Record<MetricKey, MetricInfo> {
     comments_per_pr: { name: "Comments received per PR", def: "Average comments from other people per merged PR. Fewer means cleaner PRs.", better: "lower",
       more: ["Most PRs merge with a bare approval, so an average, not a median (which would be 0).", "Your own comments don't count."] },
     changes_requested_per_100_prs: { name: "Change requests per 100 PRs", def: "Reviews from others that requested changes, per 100 merged PRs.", better: "lower",
-      more: ["Each change request counts, so a PR sent back twice counts twice. Dismissed change requests still count."] },
+      more: ["Each change request counts, so a PR sent back twice counts twice. A dismissed change request doesn't count: GitHub reports it as dismissed, the same as a dismissed approval."] },
     median_pr_diff_lines: { name: "Median PR size (lines)", def: "Lines added plus deleted per merged PR. Smaller PRs are easier to review.", better: "lower" },
     median_hours_to_merge: { name: "Median hours to merge", def: "From ready for review to merge.", better: "lower",
       more: ["Starts when the PR left draft, or when it was opened if it never was a draft."] },
@@ -364,9 +365,10 @@ export type Report = {
 // Jev scores
 
 export type ScoredItem = Pick<ScoreLine, "url" | "where" | "at" | "text"> & { score: number };
-export type ScoreSummary = { scored: number; strong: Record<string, number>; top: Record<string, ScoredItem[]> };
+/** `about`: each criterion's summary from jev-criteria.json, for readers. */
+export type ScoreSummary = { scored: number; strong: Record<string, number>; top: Record<string, ScoredItem[]>; about: Record<string, string> };
 
-export function summarizeScores(lines: ScoreLine[], topN = 8): ScoreSummary {
+export function summarizeScores(lines: ScoreLine[], topN = 8, about: Record<string, string> = {}): ScoreSummary {
   const criteria = [...new Set(lines.flatMap((l) => Object.keys(l.scores)))];
   const strong: Record<string, number> = {};
   const top: Record<string, ScoredItem[]> = {};
@@ -376,7 +378,7 @@ export function summarizeScores(lines: ScoreLine[], topN = 8): ScoreSummary {
     strong[k] = stand.filter((c) => c.includes(k)).length;
     top[k] = scored.sort((a, b) => b.score - a.score).slice(0, topN);
   }
-  return { scored: lines.length, strong, top };
+  return { scored: lines.length, strong, top, about };
 }
 
 /** Rename repos so a moved or replaced repo counts as one. Names without an org get the file's org. */
@@ -411,7 +413,7 @@ export function build(dir: string, { bots = new Set(), sameRepo = new Map() }: B
       const threads = data.source === "slack" ? readJson(join(dir, which, "slack-threads.json"), slackThreadsFile) : null;
       const m = data.source === "slack" ? slackMetrics(data, threads) : metricsFor(data.source === "github" ? mergeRepos(data, sameRepo) : data, bots);
       (report.sources[src] ??= {})[which] = m;
-      if (which === "current") report.caveats.push(...m.caveats);
+      report.caveats.push(...(which === "current" ? m.caveats : m.caveats.map((c) => `Previous period: ${c}`)));
       if (data.source === "github" && which === "current") report.github_org = data.org;
     }
   }
@@ -419,11 +421,8 @@ export function build(dir: string, { bots = new Set(), sameRepo = new Map() }: B
   const notes = sourceInfo(report.github_org, bots, sameRepo);
   for (const src of Object.keys(report.sources) as Source[]) report.source_info[src] = notes[src];
   report.highlights = readJson(join(dir, "highlights.json"), highlightsSchema) ?? [];
-  const scoresPath = join(dir, "scores.jsonl");
-  if (existsSync(scoresPath)) {
-    const lines = readFileSync(scoresPath, "utf8").split("\n").filter(Boolean).map((l, i) => parse(scoreLine, JSON.parse(l), `${scoresPath}:${i + 1}`));
-    report.scores = summarizeScores(lines);
-  }
+  const lines = readScores(dir);
+  if (lines.length) report.scores = summarizeScores(lines, 8, Object.fromEntries(Object.entries(readCriteria()).map(([k, c]) => [k, c.summary])));
   return report;
 }
 

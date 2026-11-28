@@ -178,14 +178,15 @@ export function slackNames(threads: SlackThreadsFile | null): Map<string, string
 }
 
 /** Slack's markup as plain text: `<https://x|label>` is `label (https://x)`, `<@U1>` is `@name`, a group's `<@S1>` is `@team`, `<#C1|eng>` is `#eng`,
- * `<!here>` is `@here`, and `&amp;` `&lt;` `&gt;` are unescaped. */
+ * `<!here>` is `@here`, a `<!date^…|fallback>` is its fallback text, and `&amp;` `&lt;` `&gt;` are unescaped. */
 export function plainSlack(text: string, names: ReadonlyMap<string, string>): string {
   return text
     .replace(/<@S[A-Z0-9]+>/g, "@team")
-    .replace(/<@([UW][A-Z0-9]+)(?:\|([^>]*))?>/g, (_, id: string, label?: string) => `@${names.get(id) ?? label ?? "someone"}`)
-    .replace(/<#[A-Z0-9]+\|([^>]*)>/g, "#$1")
-    .replace(/<#([A-Z0-9]+)>/g, "#channel")
-    .replace(/<!subteam\^[A-Z0-9]+(?:\|([^>]*))?>/g, (_, label?: string) => label ?? "@team")
+    .replace(/<@([UW][A-Z0-9]+)(?:\|([^>]*))?>/g, (_, id: string, label?: string) => `@${names.get(id) ?? (label || "someone")}`)
+    .replace(/<#[A-Z0-9]+\|([^>]+)>/g, "#$1")
+    .replace(/<#[A-Z0-9]+\|?>/g, "#channel")
+    .replace(/<!subteam\^[A-Z0-9]+(?:\|([^>]*))?>/g, (_, label?: string) => label || "@team")
+    .replace(/<!date\^[^|>]*\|([^>]*)>/g, "$1")
     .replace(/<!([a-z]+)(?:\|[^>]*)?>/g, "@$1")
     .replace(/<((?:https?|mailto):[^|>]+)\|([^>]+)>/g, (_, url: string, label: string) => (label === url.replace(/^mailto:/, "") ? label : `${label} (${url})`))
     .replace(/<((?:https?|mailto):[^>]+)>/g, "$1")
@@ -199,7 +200,7 @@ export function reactionsOn(m: SlackMessage, threads: SlackThreadsFile | null): 
   if (thread === undefined) return null;
   const merged: Record<string, number> = {};
   for (const [name, n] of Object.entries(thread.find((t) => t.ts === m.ts)?.reactions ?? {})) {
-    const base = name.replace(/::skin-tone-\d$/, "");
+    const base = name.replace(/::skin-tone-\d/g, "");
     merged[base] = (merged[base] ?? 0) + n;
   }
   return merged;
@@ -274,7 +275,8 @@ export type NotionFile = Infer<typeof notionFile>;
 
 // Jev scoring: criteria from references/jev-criteria.json, results in DIR/scores.jsonl (score-jev.ts).
 
-export const jevCriteria = record(object({ instructions: string, criteria: array(string) }));
+/** `summary` is for people reading the report; Jev sees `instructions` and the `criteria` levels. */
+export const jevCriteria = record(object({ summary: withDefault(string, () => ""), instructions: string, criteria: array(string) }));
 export type JevCriteria = Infer<typeof jevCriteria>;
 export const scoreLine = object({
   id: string,

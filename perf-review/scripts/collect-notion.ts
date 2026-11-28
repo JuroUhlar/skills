@@ -6,15 +6,43 @@
 // the MCP server acts as the signed-in user, so it sees what they see. Read-only: calls only search, self, and comments.
 // - pages_created / pages_edited: workspace search filtered to the user, one month at a time.
 // - comments: the user's comments in the period, on those pages. Comments on other pages are missed.
-import { readFileSync } from "node:fs";
+import { closeSync, openSync, readFileSync, rmSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { addDays, fatal, fetchJson, inPeriod, isMain, log, monthChunks, now, periodArgs, writeJson } from "./common.ts";
+import { addDays, fatal, fetchJson, inPeriod, isMain, log, monthChunks, now, periodArgs, retryAfter, sleep, writeJson } from "./common.ts";
 import { NOTION_MCP, requestToken, saveToken } from "./notion-login.ts";
 import { notionToken, timestamp, type Day, type NotionFile, type NotionToken, type Period, type Timestamp } from "./records.ts";
 import { array, boolean, isObject, nullable, object, parse, string, withDefault, type Infer } from "./schema.ts";
 
 const USAGE = "usage: collect-notion.ts [--token TOKEN_FILE] --from YYYY-MM-DD --to YYYY-MM-DD --out FILE";
 const PAGE_SIZE = 50;
+
+const REFRESH_MARGIN_MS = 5 * 60_000;
+const readToken = (path: string) => parse(notionToken, JSON.parse(readFileSync(path, "utf8")), "token file");
+
+/** A token valid for a few more minutes. Notion rotates refresh tokens, so two collectors (current and previous
+ * period) must not refresh at once: a lock file serializes it, and a token the other one just saved is reused. */
+async function freshToken(path: string): Promise<NotionToken> {
+  const lock = `${path}.lock`;
+  for (let waited = 0; ; waited++) {
+    try {
+      closeSync(openSync(lock, "wx"));
+      break;
+    } catch {
+      if (waited >= 60) fatal(`${lock} has existed for a minute. Delete it if no other collect-notion.ts is running.`);
+      await sleep(1000);
+    }
+  }
+  try {
+    const saved = readToken(path);
+    if (saved.expires_at >= Date.now() + REFRESH_MARGIN_MS) return saved;
+    if (!saved.refresh_token) fatal("The Notion token expired and has no refresh token. Run notion-login.ts again.");
+    const t = await requestToken({ grant_type: "refresh_token", refresh_token: saved.refresh_token, client_id: saved.client_id });
+    saveToken(path, t);
+    return t;
+  } finally {
+    rmSync(lock, { force: true });
+  }
+}
 
 // MCP over HTTP: JSON-RPC requests; replies come as JSON or as server-sent events.
 
@@ -34,10 +62,7 @@ class Mcp {
   }
 
   private async send(body: object): Promise<Response> {
-    if (this.token.expires_at < Date.now() + 5 * 60_000) {
-      this.token = await requestToken({ grant_type: "refresh_token", refresh_token: this.token.refresh_token, client_id: this.token.client_id });
-      saveToken(this.tokenPath, this.token);
-    }
+    if (this.token.expires_at < Date.now() + REFRESH_MARGIN_MS) this.token = await freshToken(this.tokenPath);
     const res = await fetch(`${NOTION_MCP}/mcp`, {
       method: "POST",
       signal: AbortSignal.timeout(120_000),
@@ -55,16 +80,25 @@ class Mcp {
   private async request(method: string, params: object): Promise<Infer<typeof rpcReply>> {
     const id = String(++this.id);
     for (let attempt = 1; ; attempt++) {
-      const res = await this.send({ jsonrpc: "2.0", id, method, params });
-      const text = await res.text();
-      if ((res.status === 429 || res.status >= 500) && attempt < 6) {
-        log(`  notion ${method}: HTTP ${res.status}, retrying in ${10 * attempt}s`);
-        await new Promise((r) => setTimeout(r, 10_000 * attempt));
+      let res: Response, text: string;
+      try {
+        res = await this.send({ jsonrpc: "2.0", id, method, params });
+        text = await res.text();
+      } catch (e) {
+        if (attempt >= 6) throw new Error(`notion ${method} failed: ${String(e)}`, { cause: e });
+        log(`  notion ${method}: ${String(e)}, retrying in ${10 * attempt}s`);
+        await sleep(10_000 * attempt);
+        continue;
+      }
+      const wait = retryAfter(res, attempt);
+      if (wait !== null && attempt < 6) {
+        log(`  notion ${method}: HTTP ${res.status}, retrying in ${wait}s`);
+        await sleep(wait * 1000);
         continue;
       }
       if (!res.ok) throw new Error(`notion ${method}: HTTP ${res.status} ${text.slice(0, 300)}`);
       const messages = res.headers.get("content-type")?.includes("event-stream")
-        ? text.split("\n").filter((l) => l.startsWith("data:")).map((l) => JSON.parse(l.slice(5)) as unknown)
+        ? text.split("\n").filter((l) => l.startsWith("data:") && l.slice(5).trim()).map((l) => JSON.parse(l.slice(5)) as unknown)
         : [JSON.parse(text) as unknown];
       const reply = messages.find((m) => isObject(m) && String(m.id) === id);
       if (reply === undefined) throw new Error(`notion ${method}: no reply in response`);
@@ -100,24 +134,24 @@ type Page = NotionFile["pages_created"][number];
 const toPage = (h: Infer<typeof searchHit>): Page => ({ id: h.id, title: h.title, url: h.url, type: h.type, last_edited: h.timestamp, path: h.path });
 
 /** All pages matching one filter kind in a period; a full page of results is split in half, since search caps results. */
-async function searchRange(mcp: Mcp, kind: "created" | "edited", p: Period): Promise<Page[]> {
+async function searchRange(mcp: Mcp, kind: "created" | "edited", p: Period, warnings: string[]): Promise<Page[]> {
   const filters = kind === "created"
     ? { created_by_user_ids: ["me"], created_date_range: { start_date: p.from, end_date: p.to } }
     : { edited_by_user_ids: ["me"], last_edited_date_range: { start_date: p.from, end_date: p.to } };
   const text = await mcp.call("notion-search", { query: "", filters, sort: kind === "created" ? "created" : "last_edited", page_size: PAGE_SIZE, max_highlight_length: 0 });
   const hits = parse(searchResult, JSON.parse(text), `notion search ${kind} ${p.from}`).results;
   if (hits.length < PAGE_SIZE || p.from === p.to) {
-    if (hits.length >= PAGE_SIZE) log(`  ${kind} ${p.from}: ${hits.length} results in one day, may be truncated`);
+    if (hits.length >= PAGE_SIZE) warnings.push(`Pages ${kind} on ${p.from} may be incomplete: search returned its maximum of ${PAGE_SIZE} for one day.`);
     return hits.map(toPage);
   }
   const days = (Date.parse(`${p.to}T00:00:00Z`) - Date.parse(`${p.from}T00:00:00Z`)) / 86_400_000;
   const mid: Day = addDays(p.from, Math.floor(days / 2));
-  return [...await searchRange(mcp, kind, { from: p.from, to: mid }), ...await searchRange(mcp, kind, { from: addDays(mid, 1), to: p.to })];
+  return [...await searchRange(mcp, kind, { from: p.from, to: mid }, warnings), ...await searchRange(mcp, kind, { from: addDays(mid, 1), to: p.to }, warnings)];
 }
 
-async function searchAll(mcp: Mcp, kind: "created" | "edited", period: Period): Promise<Page[]> {
+async function searchAll(mcp: Mcp, kind: "created" | "edited", period: Period, warnings: string[]): Promise<Page[]> {
   const byId = new Map<string, Page>();
-  for (const month of monthChunks(period)) for (const page of await searchRange(mcp, kind, month)) byId.set(page.id, page);
+  for (const month of monthChunks(period)) for (const page of await searchRange(mcp, kind, month, warnings)) byId.set(page.id, page);
   return [...byId.values()];
 }
 
@@ -146,7 +180,7 @@ export function parseDiscussions(text: string): { discussions: Discussion[]; omi
       const at = attr(tag, "datetime");
       return at === null ? [] : [{ at: parse(timestamp, at, "comment datetime"), byYou: attr(tag, "by-you") === "true", text: htmlToText(html) }];
     });
-    discussions.push({ id: decode(attr(open, "id") ?? ""), resolved: attr(open, "resolved") === "true", nextCursor: attr(open, "next-cursor"), comments });
+    discussions.push({ id: decode(attr(open, "id") ?? ""), resolved: attr(open, "resolved") === "true", nextCursor: decode(attr(open, "next-cursor") ?? "") || null, comments });
   }
   const head = /<discussions\s[^>]*>/.exec(body)?.[0] ?? "";
   const omitted = Number(attr(head, "total-count") ?? 0) - Number(attr(head, "shown-count") ?? 0);
@@ -176,18 +210,18 @@ async function main() {
   const { out, ...period } = periodArgs(values, USAGE);
   const tokenPath = values.token ?? process.env.NOTION_TOKEN_FILE;
   if (!tokenPath) fatal(`${USAGE}\nOr set NOTION_TOKEN_FILE. Get a token with notion-login.ts.`);
-  const token = parse(notionToken, JSON.parse(readFileSync(tokenPath, "utf8")), "token file");
+  const token = readToken(tokenPath);
   const mcp = new Mcp(token, tokenPath);
   await mcp.connect();
 
   const self = parse(object({ user: object({ name: string }) }), JSON.parse(await mcp.call("notion-get-self", {})), "notion self");
   const user = self.user.name;
   log(`signed in to Notion as ${user}`);
-  const pagesCreated = await searchAll(mcp, "created", period);
-  const pagesEdited = await searchAll(mcp, "edited", period);
+  const warnings: string[] = [];
+  const pagesCreated = await searchAll(mcp, "created", period, warnings);
+  const pagesEdited = await searchAll(mcp, "edited", period, warnings);
   log(`pages: ${pagesCreated.length} created, ${pagesEdited.length} edited`);
 
-  const warnings: string[] = [];
   const pages = new Map([...pagesCreated, ...pagesEdited].map((p) => [p.id, p]));
   const comments: Comment[] = [];
   for (const page of pages.values()) comments.push(...await commentsOn(mcp, page, period, warnings));

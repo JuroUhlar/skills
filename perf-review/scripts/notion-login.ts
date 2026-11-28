@@ -7,7 +7,7 @@
 // The token acts as you: it sees every page and comment you can see. Keep the file out of repos.
 import { execFile } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { chmodSync, renameSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { parseArgs } from "node:util";
 import { fatal, fetchJson, isMain, log } from "./common.ts";
@@ -36,8 +36,12 @@ export async function requestToken(body: Record<string, string>): Promise<Notion
   }, "notion token");
 }
 
+/** Atomic, and mode 600 even when replacing a file with looser permissions. */
 export function saveToken(path: string, t: NotionToken): void {
-  writeFileSync(path, JSON.stringify(t), { mode: 0o600 });
+  const tmp = `${path}.${process.pid}.tmp`;
+  writeFileSync(tmp, JSON.stringify(t), { mode: 0o600 });
+  chmodSync(tmp, 0o600);
+  renameSync(tmp, path);
 }
 
 async function main() {

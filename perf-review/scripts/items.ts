@@ -1,8 +1,11 @@
 // The current period's Slack messages and Notion comments as uniform items, each with the conversation
 // it belongs to, for scoring (score-jev.ts) and highlight picking (prepare-batches.ts).
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { readJson } from "./common.ts";
-import { isReply, notionFile, plainSlack, reactionsOn, slackFile, slackNames, slackThreadsFile, threadKey, type ScoreLine, type Timestamp } from "./records.ts";
+import { isReply, jevCriteria, notionFile, plainSlack, reactionsOn, scoreLine, slackFile, slackNames, slackThreadsFile, threadKey, type JevCriteria, type ScoreLine, type Timestamp } from "./records.ts";
+import { parse } from "./schema.ts";
 
 export type ContextLine = { name: string; text: string; role: "thread start" | "earlier reply" | "page" };
 export type Item = {
@@ -17,6 +20,17 @@ export type Item = {
   /** Emoji reactions from others, e.g. {"joy": 3}. */
   reactions: Record<string, number>;
 };
+
+export const DEFAULT_CRITERIA = fileURLToPath(new URL("../references/jev-criteria.json", import.meta.url));
+export const readCriteria = (path = DEFAULT_CRITERIA): JevCriteria => parse(jevCriteria, JSON.parse(readFileSync(path, "utf8")), path);
+
+/** DIR/scores.jsonl from score-jev.ts, one line per item; if an item was scored twice, the later line wins. Empty without the file. */
+export function readScores(dir: string): ScoreLine[] {
+  const path = join(dir, "scores.jsonl");
+  if (!existsSync(path)) return [];
+  const lines = readFileSync(path, "utf8").split("\n").filter(Boolean).map((l, i) => parse(scoreLine, JSON.parse(l), `${path}:${i + 1}`));
+  return [...new Map(lines.map((l) => [l.id, l])).values()];
+}
 
 const CONTEXT_CHARS = 1500;
 const clip = (s: string) => (s.length > CONTEXT_CHARS ? `${s.slice(0, CONTEXT_CHARS)}…` : s);

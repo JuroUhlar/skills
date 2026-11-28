@@ -69,11 +69,12 @@ export function toTicket(site: string, i: Infer<typeof issue>, started: Timestam
 async function fullHistory(site: string, auth: string, key: string, first: Infer<typeof changelog>): Promise<History[]> {
   if (first.histories.length >= first.total) return first.histories;
   const out: History[] = [];
-  for (let startAt = 0; ; startAt += 100) {
+  for (let startAt = 0; ; ) {
     const raw = await fetchJson(`https://${site}/rest/api/3/issue/${encodeURIComponent(key)}/changelog?startAt=${startAt}&maxResults=100`, { headers: headers(auth) });
     const page = parse(changelogPage, raw, `jira changelog ${key}`);
     out.push(...page.values);
     if (page.isLast || page.values.length === 0) return out;
+    startAt += page.values.length;
   }
 }
 
